@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta
+      name="viewport"
+      content="initial-scale=1, width=device-width, maximum-scale=1, interactive-widget=resizes-content"
+    />
+    <meta name="interactive-widget" content="resizes-content" />
+    <title>DEMO: Sharelyai webcontroller</title>
+  </head>
+  <body>
+    <div id="sharelyai-webcontroller-id"></div>
+    <script type="module" src="/src/main.ts"></script>
+    <script>
+      var moduleScripts = document.querySelectorAll('script[type="module"]');
+
+      moduleScripts[moduleScripts.length - 1].addEventListener(
+        "load",
+        function () {
+          const workspaceIdQueryParam = new URLSearchParams(
+            window.location.search
+          ).get("workspaceId");
+          const baseConfig = {
+            workspaceId: workspaceIdQueryParam,
+            saveSpaceNumMgs: 1,
+          };
+          window.sharelyai.initialize(baseConfig);
+          window.sharelyai.render();
+        }
+      );
+    </script>
+  </body>
+</html>

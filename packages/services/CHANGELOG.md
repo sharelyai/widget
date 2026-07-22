@@ -1,0 +1,1 @@
+# @sharelyai/widget-services

@@ -1,0 +1,7 @@
+{
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm turbo run build && rm -rf dist && cp -r apps/demo/dist dist && mkdir -p dist/assets && cp -r apps/webcontrol/dist/assets/. dist/assets/",
+  "outputDirectory": "dist",
+  "framework": null,
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}

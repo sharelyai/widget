@@ -1,0 +1,19 @@
+export const DragBar = () => {
+  return (
+    <svg
+      width="36"
+      height="4"
+      viewBox="0 0 36 4"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M2 2H34"
+        stroke="#101828"
+        strokeOpacity="0.24"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+};

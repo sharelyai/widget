@@ -1,0 +1,16 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2025-11-18T12:00:00Z",
+  "defaultBehavior": {
+    "browse": {
+      "show": true
+    },
+    "search": {
+      "show": true
+    },
+    "chat": {
+      "show": true
+    }
+  },
+  "workspaces": []
+}

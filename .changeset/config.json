@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [],
+  "linked": [
+    [
+      "@sharelyai/widget-services",
+      "@sharelyai/widget-ui-shared",
+      "@sharelyai/widget-ui-agent-chat",
+      "@sharelyai/widget-ui-chat",
+      "@sharelyai/widget-ui-search",
+      "@sharelyai/widget-ui-browse"
+    ]
+  ],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": [
+    "@sharelyai/demo",
+    "@sharelyai/widget"
+  ]
+}
