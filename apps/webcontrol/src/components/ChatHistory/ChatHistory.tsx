@@ -58,6 +58,7 @@ export const ChatHistory = (props: ChatHistoryProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [newChatName, setNewChatName] = useState<string>("");
   const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
+  const [isClearAllOpen, setIsClearAllOpen] = useState<boolean>(false);
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [optionsVisible, setOptionsVisible] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState(false);
@@ -140,6 +141,21 @@ export const ChatHistory = (props: ChatHistoryProps) => {
   };
 
   const closeOptions = () => setOptionsVisible(null);
+
+  const handleConfirmClearAll = async () => {
+    setIsClearAllOpen(false);
+    try {
+      await agentThreads.deleteAllThreads();
+      // The active thread was among those cleared — reset the selection.
+      setCurrentInformation({
+        agentThreadId: undefined,
+        agentThreadName: undefined,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+    onClose?.();
+  };
 
   const handleConfirmDeleteChat = async () => {
     setIsOpenModal(false);
@@ -364,6 +380,17 @@ export const ChatHistory = (props: ChatHistoryProps) => {
             buttonCancelText="No, do not delete"
           />
         )}
+        {isClearAllOpen && (
+          <Dialog
+            isOpen={isClearAllOpen}
+            onClose={() => setIsClearAllOpen(false)}
+            onConfirm={handleConfirmClearAll}
+            title="Clear all history?"
+            description="This will delete all of your threads and is not reversable."
+            buttonConfirmText="Yes, clear all"
+            buttonCancelText="Cancel"
+          />
+        )}
         {!isPublicSpace && (
           <UserMenu
             left={20}
@@ -396,6 +423,30 @@ export const ChatHistory = (props: ChatHistoryProps) => {
               <AddChatBox />
               New chat
             </button>
+            {isAgentMode && agentThreads.threads.length > 0 && (
+              <button
+                className="chat-history-menu-button"
+                onClick={() => setIsClearAllOpen(true)}
+                disabled={!!isLoadingData}
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ fill: "none" }}
+                >
+                  <path d="M3 6h18" />
+                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                  <path d="M10 11v6M14 11v6" />
+                </svg>
+                Clear all history
+              </button>
+            )}
           </div>
           <div className="chat-history-body">
             {isLoadingData && (

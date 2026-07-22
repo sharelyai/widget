@@ -248,4 +248,5 @@ export interface UseAgentThreadsReturn {
     data: { title?: string; status?: string }
   ) => Promise<void>;
   deleteThread: (threadId: string) => Promise<void>;
+  deleteAllThreads: () => Promise<void>;
 }

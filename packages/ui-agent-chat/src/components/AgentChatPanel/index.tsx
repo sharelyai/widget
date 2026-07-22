@@ -100,7 +100,8 @@ export function AgentChatPanel({
   const [showAbout, setShowAbout] = useState(false);
   const handleVersionClick = onVersionClick ?? (() => setShowAbout(true));
 
-  const { threads, fetchThreads, updateThread } = useAgentThreads({ spaceId });
+  const { threads, fetchThreads, updateThread, deleteAllThreads } =
+    useAgentThreads({ spaceId });
 
   const currentThread = threadId
     ? threads.find((t) => t.id === threadId)
@@ -248,6 +249,11 @@ export function AgentChatPanel({
         activeThreadId={threadId}
         onSelectThread={handleHistorySelect}
         onNewChat={handleNewChat}
+        onClearAll={async () => {
+          await deleteAllThreads();
+          resetChat();
+          setHistoryOpen(false);
+        }}
       />
 
       {/* All Sources Modal */}

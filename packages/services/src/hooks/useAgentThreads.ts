@@ -100,6 +100,20 @@ export function useAgentThreads(
     setThreads((prev) => prev.filter((t) => t.id !== threadId));
   }, [workspaceId, getBasePath]);
 
+  const deleteAllThreads = useCallback(async () => {
+    if (!workspaceId) {
+      throw new Error("Workspace ID not available");
+    }
+    // No bulk endpoint yet — loop over the per-thread DELETE. Swap this for a
+    // single bulk request here once the backend provides one.
+    await Promise.all(
+      threads.map((t) =>
+        agentFetcher(`${getBasePath()}/threads/${t.id}`, { method: "DELETE" }),
+      ),
+    );
+    setThreads([]);
+  }, [workspaceId, getBasePath, threads]);
+
   useEffect(() => {
     if (autoFetch) {
       fetchThreads();
@@ -114,5 +128,6 @@ export function useAgentThreads(
     createThread,
     updateThread,
     deleteThread,
+    deleteAllThreads,
   };
 }
