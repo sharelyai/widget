@@ -1073,6 +1073,227 @@ function CodeModal({
 }
 
 // ---------------------------------------------------------------------------
+// Connection status
+// ---------------------------------------------------------------------------
+function ConnectionStatus({
+  workspaceId,
+  onChange,
+  inputId,
+}: {
+  workspaceId: string;
+  onChange: (v: string) => void;
+  inputId: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [h, setH] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const connected = workspaceId.trim().length > 0;
+
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
+
+  if (editing) {
+    return (
+      <div
+        style={{
+          padding: "12px 24px",
+          borderBottom: `1px solid ${T.border}`,
+          flexShrink: 0,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: T.muted,
+            marginBottom: 6,
+            textTransform: "uppercase",
+            letterSpacing: "0.5px",
+          }}
+        >
+          Workspace ID
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <input
+            ref={inputRef}
+            id={inputId}
+            value={workspaceId}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="your-workspace-id"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") setEditing(false);
+            }}
+            style={{
+              ...inputBase,
+              flex: 1,
+              borderColor: T.primary,
+              boxShadow: `0 0 0 3px ${T.primaryBg}`,
+            }}
+          />
+          <button
+            onClick={() => setEditing(false)}
+            style={{
+              padding: "8px 16px",
+              fontSize: 13,
+              fontWeight: 600,
+              color: T.surface,
+              background: T.primary,
+              border: "none",
+              borderRadius: 8,
+              cursor: "pointer",
+              transition: "background 150ms",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = T.primaryDark;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = T.primary;
+            }}
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!connected) {
+    return (
+      <div
+        style={{
+          padding: "12px 24px",
+          borderBottom: `1px solid ${T.border}`,
+          flexShrink: 0,
+        }}
+      >
+        <button
+          onClick={() => setEditing(true)}
+          onMouseEnter={() => setH(true)}
+          onMouseLeave={() => setH(false)}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "12px 14px",
+            border: `1.5px dashed ${h ? T.primary : T.border}`,
+            borderRadius: 10,
+            background: h ? T.primaryBgSubtle : T.gray50,
+            cursor: "pointer",
+            transition: "all 150ms",
+          }}
+        >
+          <span
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              background: "#F59E0B",
+              flexShrink: 0,
+            }}
+          />
+          <span style={{ flex: 1, textAlign: "left" }}>
+            <span
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: T.foreground,
+                display: "block",
+              }}
+            >
+              Not connected
+            </span>
+            <span style={{ fontSize: 13, color: T.muted }}>
+              Add workspace ID to preview
+            </span>
+          </span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width={16}
+            height={16}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={T.muted}
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        padding: "10px 24px",
+        borderBottom: `1px solid ${T.border}`,
+        flexShrink: 0,
+      }}
+    >
+      <button
+        onClick={() => setEditing(true)}
+        onMouseEnter={() => setH(true)}
+        onMouseLeave={() => setH(false)}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "8px 12px",
+          border: "none",
+          borderRadius: 8,
+          background: h ? T.gray50 : "transparent",
+          cursor: "pointer",
+          transition: "background 150ms",
+        }}
+      >
+        <span
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: T.success,
+            flexShrink: 0,
+          }}
+        />
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 500,
+            color: T.muted,
+            flex: 1,
+            textAlign: "left",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Connected · <span style={{ color: T.foreground }}>{workspaceId}</span>
+        </span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={14}
+          height={14}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={T.muted}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ flexShrink: 0 }}
+        >
+          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Playground
 // ---------------------------------------------------------------------------
 export default function Playground() {
@@ -1354,6 +1575,13 @@ export default function Playground() {
             {isInline ? "Inline mode" : "Floating mode"}
           </p>
         </div>
+
+        {/* Connection status — fixed, not scrollable */}
+        <ConnectionStatus
+          workspaceId={s.workspaceId}
+          onChange={(v) => set("workspaceId", v)}
+          inputId={fid("ws-top")}
+        />
 
         {/* Controls — single scrollable surface */}
         <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
