@@ -6,6 +6,7 @@ import {
   useLanguage,
   constants,
 } from "@sharelyai/widget-services";
+import { useBrowseStorage } from "@sharelyai/widget-ui-browse";
 import rolesTabsConfig from "./roles-tabs-config.json";
 
 interface TabConfig {
@@ -31,6 +32,7 @@ export const ViewTabs = () => {
     userData,
   } = useGlobalStore();
   const { t } = useLanguage();
+  const { setTreeCategoriesLevelData, setBreadcrumb } = useBrowseStorage();
   const syncedRef = useRef<TabVisibility | null>(null);
 
   const tabVisibility = useMemo<TabVisibility>(() => {
@@ -124,7 +126,11 @@ export const ViewTabs = () => {
         Boolean(tabVisibility.browse?.["comingSoon"])) && (
         <ToggleButton
           $active={currentView === constants.BROWSE_VIEW}
-          onClick={() => setCurrentView(constants.BROWSE_VIEW)}
+          onClick={() => {
+            setTreeCategoriesLevelData?.(null);
+            setBreadcrumb?.([]);
+            setCurrentView(constants.BROWSE_VIEW);
+          }}
         >
           {t("BrowseTabText")}
         </ToggleButton>
