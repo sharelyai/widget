@@ -1,7 +1,7 @@
-import { createSpacesApi } from './spaces';
-import { createKnowledgeApi } from './knowledge';
-import { createWorkspacesApi } from './workspaces';
-import { getGlobalEnvHeaders } from '../utils/globalEnv';
+import { createSpacesApi } from "./spaces";
+import { createKnowledgeApi } from "./knowledge";
+import { createWorkspacesApi } from "./workspaces";
+import { getGlobalEnvHeaders } from "../utils/globalEnv";
 
 export class ApiError extends Error {
   status: number;
@@ -9,7 +9,7 @@ export class ApiError extends Error {
 
   constructor(status: number, message: string, data?: any) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
     this.status = status;
     this.data = data;
   }
@@ -21,7 +21,10 @@ export interface ApiClientConfig {
   onError?: (error: ApiError) => void;
 }
 
-export type Fetcher = <T>(endpoint: string, options?: RequestInit & { parseJson?: boolean }) => Promise<T>;
+export type Fetcher = <T>(
+  endpoint: string,
+  options?: RequestInit & { parseJson?: boolean },
+) => Promise<T>;
 
 export interface BaseClient {
   fetcher: Fetcher;
@@ -35,10 +38,13 @@ export interface ApiClient extends BaseClient {
 }
 
 export function createApiClient(config: ApiClientConfig): ApiClient {
-  const request = async (endpoint: string, options?: RequestInit): Promise<Response> => {
+  const request = async (
+    endpoint: string,
+    options?: RequestInit,
+  ): Promise<Response> => {
     const token = config.getToken();
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...getGlobalEnvHeaders(),
       ...options?.headers,
@@ -58,7 +64,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
       } catch {
         // ignore json parse error
       }
-      
+
       const error = new ApiError(response.status, errorMessage, data);
       config.onError?.(error);
       throw error;
@@ -67,7 +73,10 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
     return response;
   };
 
-  const fetcher: Fetcher = async <T>(endpoint: string, options?: RequestInit & { parseJson?: boolean }): Promise<T> => {
+  const fetcher: Fetcher = async <T>(
+    endpoint: string,
+    options?: RequestInit & { parseJson?: boolean },
+  ): Promise<T> => {
     const response = await request(endpoint, options);
 
     if (options?.parseJson === false) {

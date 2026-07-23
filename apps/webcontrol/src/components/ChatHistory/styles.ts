@@ -24,16 +24,20 @@ export const Wrapper = styled.div<Props>`
       bottom: 0;
       z-index: 20;
 
-      ${props.version === "v2" &&
-      css`
-        background-color: ${theme.colors.OxfordBlue}99;
-      `}
+      ${
+        props.version === "v2" &&
+        css`
+          background-color: ${theme.colors.OxfordBlue}99;
+        `
+      }
 
       @media (max-width: ${theme.screens.sm}) {
-        ${props.version === "v2" &&
-        css`
-          border-radius: 0px;
-        `}
+        ${
+          props.version === "v2" &&
+          css`
+            border-radius: 0px;
+          `
+        }
       }
     }
 
@@ -59,17 +63,19 @@ export const Wrapper = styled.div<Props>`
         @media (min-width: ${theme.screens.md}) {
           border-radius: 20px 0 0 20px;
 
-          ${props.version === "v2" &&
-          css`
-            width: 706px;
-            height: 498px;
-            box-shadow: ${theme.shadows.lowDepthShadow};
-            border-radius: 20px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-          `}
+          ${
+            props.version === "v2" &&
+            css`
+              width: 706px;
+              height: 498px;
+              box-shadow: ${theme.shadows.lowDepthShadow};
+              border-radius: 20px;
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+            `
+          }
         }
       }
 
@@ -300,10 +306,12 @@ export const Wrapper = styled.div<Props>`
         align-items: center;
         justify-content: center;
 
-        ${props.version === "v2" &&
-        css`
-          width: 100%;
-        `}
+        ${
+          props.version === "v2" &&
+          css`
+            width: 100%;
+          `
+        }
 
         & > .public-space {
           display: flex;

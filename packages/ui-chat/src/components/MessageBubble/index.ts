@@ -1,1 +1,1 @@
-export * from './MessageBubble';
+export * from "./MessageBubble";

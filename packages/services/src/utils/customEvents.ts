@@ -1,8 +1,14 @@
-function subscribe(eventName: string, listener: EventListenerOrEventListenerObject) {
+function subscribe(
+  eventName: string,
+  listener: EventListenerOrEventListenerObject,
+) {
   document.addEventListener(eventName, listener);
 }
 
-function unsubscribe(eventName: string, listener: EventListenerOrEventListenerObject) {
+function unsubscribe(
+  eventName: string,
+  listener: EventListenerOrEventListenerObject,
+) {
   document.removeEventListener(eventName, listener);
 }
 

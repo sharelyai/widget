@@ -27,7 +27,10 @@ export const useKnowledgeResources = ({
     ],
     queryFn: () => {
       if (!storeConfig?.workspaceId) return [];
-      return apiClient.knowledge.getCategoryResources(storeConfig.workspaceId, categoryIds);
+      return apiClient.knowledge.getCategoryResources(
+        storeConfig.workspaceId,
+        categoryIds,
+      );
     },
     enabled: isEnabled,
     staleTime: 1000 * 60 * 5, // 5 minutes

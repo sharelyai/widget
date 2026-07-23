@@ -32,23 +32,29 @@ describe("createSharelyFetch", () => {
 
   it("prepends base URL for relative paths", async () => {
     let capturedUrl: string | URL = "";
-    globalThis.fetch = vi.fn(async (url: string | URL | Request, _init?: RequestInit) => {
-      capturedUrl = url as string | URL;
-      return new Response(new ReadableStream(), { status: 200 });
-    });
+    globalThis.fetch = vi.fn(
+      async (url: string | URL | Request, _init?: RequestInit) => {
+        capturedUrl = url as string | URL;
+        return new Response(new ReadableStream(), { status: 200 });
+      },
+    );
 
     const fetchFn = createSharelyFetch();
     await fetchFn("/workspaces/w1/agent/threads/t1/chat", { method: "POST" });
 
-    expect(capturedUrl).toBe("https://api.test.com/workspaces/w1/agent/threads/t1/chat");
+    expect(capturedUrl).toBe(
+      "https://api.test.com/workspaces/w1/agent/threads/t1/chat",
+    );
   });
 
   it("does not prepend for absolute URLs", async () => {
     let capturedUrl: string | URL = "";
-    globalThis.fetch = vi.fn(async (url: string | URL | Request, _init?: RequestInit) => {
-      capturedUrl = url as string | URL;
-      return new Response(new ReadableStream(), { status: 200 });
-    });
+    globalThis.fetch = vi.fn(
+      async (url: string | URL | Request, _init?: RequestInit) => {
+        capturedUrl = url as string | URL;
+        return new Response(new ReadableStream(), { status: 200 });
+      },
+    );
 
     const fetchFn = createSharelyFetch();
     await fetchFn("https://other.com/api", { method: "POST" });
@@ -58,10 +64,12 @@ describe("createSharelyFetch", () => {
 
   it("injects auth header", async () => {
     let capturedHeaders: Headers | undefined;
-    globalThis.fetch = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
-      capturedHeaders = init?.headers as Headers;
-      return new Response(new ReadableStream(), { status: 200 });
-    });
+    globalThis.fetch = vi.fn(
+      async (url: string | URL | Request, init?: RequestInit) => {
+        capturedHeaders = init?.headers as Headers;
+        return new Response(new ReadableStream(), { status: 200 });
+      },
+    );
 
     const fetchFn = createSharelyFetch();
     await fetchFn("/test", { method: "POST" });
@@ -71,10 +79,12 @@ describe("createSharelyFetch", () => {
 
   it("sets content-type and accept headers", async () => {
     let capturedHeaders: Headers | undefined;
-    globalThis.fetch = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
-      capturedHeaders = init?.headers as Headers;
-      return new Response(new ReadableStream(), { status: 200 });
-    });
+    globalThis.fetch = vi.fn(
+      async (url: string | URL | Request, init?: RequestInit) => {
+        capturedHeaders = init?.headers as Headers;
+        return new Response(new ReadableStream(), { status: 200 });
+      },
+    );
 
     const fetchFn = createSharelyFetch();
     await fetchFn("/test", { method: "POST" });
@@ -110,7 +120,10 @@ describe("createSharelyFetch", () => {
 
   it("passes through non-OK responses as-is", async () => {
     globalThis.fetch = vi.fn(async () => {
-      return new Response("Not Found", { status: 404, statusText: "Not Found" });
+      return new Response("Not Found", {
+        status: 404,
+        statusText: "Not Found",
+      });
     });
 
     const fetchFn = createSharelyFetch();

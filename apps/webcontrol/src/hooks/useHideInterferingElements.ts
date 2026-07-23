@@ -49,9 +49,12 @@ export const useHideInterferingElements = (
 
     hideElements();
     intervalId = setInterval(hideElements, 500);
-    timeoutId = setTimeout(() => {
-      if (intervalId) clearInterval(intervalId);
-    }, 5 * 60 * 1000);
+    timeoutId = setTimeout(
+      () => {
+        if (intervalId) clearInterval(intervalId);
+      },
+      5 * 60 * 1000,
+    );
 
     return () => {
       if (intervalId) clearInterval(intervalId);

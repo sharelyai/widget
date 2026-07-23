@@ -1,5 +1,5 @@
-import type { BaseClient } from './client';
-import type { Workspace } from '../types';
+import type { BaseClient } from "./client";
+import type { Workspace } from "../types";
 
 export function createWorkspacesApi(client: BaseClient) {
   return {

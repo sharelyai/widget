@@ -1,3 +1,3 @@
 /// <reference path="./styled.d.ts" />
-export * from './WebControl';
-export { sharelyai } from './embed';
+export * from "./WebControl";
+export { sharelyai } from "./embed";

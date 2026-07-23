@@ -22,9 +22,9 @@ export const ToggleButton = styled.button<{ $active?: boolean }>`
   align-self: stretch;
   border-radius: 8px;
   background: ${({ $active, theme }) =>
-    $active ? theme.colors.white : 'transparent'};
+    $active ? theme.colors.white : "transparent"};
   box-shadow: ${({ $active }) =>
-    $active ? '0px 0.5px 4px 0px rgba(0, 0, 0, 0.08)' : 'none'};
+    $active ? "0px 0.5px 4px 0px rgba(0, 0, 0, 0.08)" : "none"};
   overflow: hidden;
   color: ${({ theme }) => theme.colors.ebony};
   text-overflow: ellipsis;

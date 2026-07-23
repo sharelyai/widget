@@ -6,11 +6,7 @@
 // skip this helper and render the native API order.
 
 export type SortKey =
-  | "relevance"
-  | "title-asc"
-  | "title-desc"
-  | "date-desc"
-  | "date-asc";
+  "relevance" | "title-asc" | "title-desc" | "date-desc" | "date-asc";
 
 export interface SortOption {
   key: SortKey;

@@ -24,7 +24,8 @@ export const Wrapper: any = styled.div`
       width: 100%;
 
       &:focus-within {
-        border: 1px solid var(--web-control-styles-main_color, ${theme.colors.indigo});
+        border: 1px solid
+          var(--web-control-styles-main_color, ${theme.colors.indigo});
       }
 
       .sharelyai-webcontroller-image-user {
@@ -109,6 +110,5 @@ export const Wrapper: any = styled.div`
         }
       }
     }
-
   `}
 `;

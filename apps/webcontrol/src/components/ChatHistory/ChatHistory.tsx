@@ -86,8 +86,7 @@ export const ChatHistory = (props: ChatHistoryProps) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const buttonsRef = useRef<HTMLDivElement>(null);
   const regularGroups = (space as any)?.spaceGroupConversation as
-    | IGroupConversation[]
-    | undefined;
+    IGroupConversation[] | undefined;
 
   // When in agent mode, map agent threads to IGroupConversation format
   const agentGroups: IGroupConversation[] | undefined = isAgentMode

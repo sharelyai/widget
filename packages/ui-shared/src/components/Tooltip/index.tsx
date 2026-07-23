@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useEffect, useRef, ReactNode } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  ReactNode,
+} from "react";
 import {
   useFloating,
   autoUpdate,
@@ -11,13 +17,13 @@ import {
   useRole,
   useInteractions,
   FloatingPortal,
-} from '@floating-ui/react';
-import styled, { css } from 'styled-components';
+} from "@floating-ui/react";
+import styled, { css } from "styled-components";
 
 interface TooltipProps {
   children: ReactNode;
   text: string;
-  placement?: 'top' | 'bottom' | 'left' | 'right';
+  placement?: "top" | "bottom" | "left" | "right";
 }
 
 const TooltipContent = styled.div`
@@ -32,10 +38,19 @@ const TooltipContent = styled.div`
   `}
 `;
 
-export const Tooltip = ({ children, text, placement = 'top' }: TooltipProps) => {
+export const Tooltip = ({
+  children,
+  text,
+  placement = "top",
+}: TooltipProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const mountedRef = useRef(true);
-  useEffect(() => () => { mountedRef.current = false; }, []);
+  useEffect(
+    () => () => {
+      mountedRef.current = false;
+    },
+    [],
+  );
 
   // Guard against setState during React commit phase (floating-ui ref cleanup)
   const handleOpenChange = useCallback((open: boolean) => {
@@ -50,7 +65,7 @@ export const Tooltip = ({ children, text, placement = 'top' }: TooltipProps) => 
     middleware: [
       offset(5),
       flip({
-        fallbackAxisSideDirection: 'start',
+        fallbackAxisSideDirection: "start",
       }),
       shift(),
     ],
@@ -59,7 +74,7 @@ export const Tooltip = ({ children, text, placement = 'top' }: TooltipProps) => 
   const hover = useHover(context, { move: false });
   const focus = useFocus(context);
   const dismiss = useDismiss(context);
-  const role = useRole(context, { role: 'tooltip' });
+  const role = useRole(context, { role: "tooltip" });
 
   const { getReferenceProps, getFloatingProps } = useInteractions([
     hover,
@@ -70,18 +85,20 @@ export const Tooltip = ({ children, text, placement = 'top' }: TooltipProps) => 
 
   const floatingRefs = useRef(refs);
   floatingRefs.current = refs;
-  const safeSetReference = useCallback(
-    (node: HTMLElement | null) => { floatingRefs.current.setReference(node); },
-    []
-  );
-  const safeSetFloating = useCallback(
-    (node: HTMLElement | null) => { floatingRefs.current.setFloating(node); },
-    []
-  );
+  const safeSetReference = useCallback((node: HTMLElement | null) => {
+    floatingRefs.current.setReference(node);
+  }, []);
+  const safeSetFloating = useCallback((node: HTMLElement | null) => {
+    floatingRefs.current.setFloating(node);
+  }, []);
 
   return (
     <>
-      <div ref={safeSetReference} {...getReferenceProps()} style={{ display: 'inline-block' }}>
+      <div
+        ref={safeSetReference}
+        {...getReferenceProps()}
+        style={{ display: "inline-block" }}
+      >
         {children}
       </div>
       {isOpen && (

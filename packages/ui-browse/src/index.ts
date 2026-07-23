@@ -1,2 +1,2 @@
-export * from './components/BrowsePanel';
-export * from './components/ContentView';
+export * from "./components/BrowsePanel";
+export * from "./components/ContentView";

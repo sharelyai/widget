@@ -35,14 +35,16 @@ export const Wrapper: any = styled.div<IWrapperProps>`
     width: 100%;
     z-index: 99999;
 
-    ${isFullScreen &&
-    css`
-      width: 100%;
-      height: 100%;
-      border-radius: 0;
-      top: 0;
-      left: 0;
-    `}
+    ${
+      isFullScreen &&
+      css`
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        top: 0;
+        left: 0;
+      `
+    }
 
     .modal-background {
       background-color: ${theme.colors[modalBackgroundColor ?? "white"]}60;

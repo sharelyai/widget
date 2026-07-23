@@ -1,4 +1,4 @@
-import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
 
 type MatchingCookies = {
   [key: string]: string;
@@ -15,7 +15,7 @@ export const cookieManager = {
     Cookies.remove(key);
   },
   getCookieName: (keys: (string | undefined)[]) => {
-    return keys.filter(Boolean).join('-');
+    return keys.filter(Boolean).join("-");
   },
   getAll: () => {
     return Cookies.get();

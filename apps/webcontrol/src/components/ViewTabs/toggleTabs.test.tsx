@@ -32,9 +32,30 @@ const SAMPLE_ROLES_TABS = {
     {
       workspaceId: RBAC_WORKSPACE_ID,
       roles: [
-        { customerRoleId: "1", tabs: { browse: { show: true }, search: { show: true }, chat: { show: true } } },
-        { customerRoleId: "3", tabs: { browse: { show: false, comingSoon: true }, search: { show: true }, chat: { show: true } } },
-        { customerRoleId: "20", tabs: { browse: { show: false }, search: { show: true }, chat: { show: true } } },
+        {
+          customerRoleId: "1",
+          tabs: {
+            browse: { show: true },
+            search: { show: true },
+            chat: { show: true },
+          },
+        },
+        {
+          customerRoleId: "3",
+          tabs: {
+            browse: { show: false, comingSoon: true },
+            search: { show: true },
+            chat: { show: true },
+          },
+        },
+        {
+          customerRoleId: "20",
+          tabs: {
+            browse: { show: false },
+            search: { show: true },
+            chat: { show: true },
+          },
+        },
       ],
     },
   ],
@@ -88,7 +109,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: true },
             BROWSE: { SHOW: true },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       renderWithTheme(<ToggleTabs />);
@@ -106,7 +127,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: false },
             BROWSE: { SHOW: false },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       // With only one tab visible, component returns null (hides tab bar)
@@ -122,7 +143,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: true },
             BROWSE: { SHOW: true },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       renderWithTheme(<ToggleTabs />);
@@ -140,7 +161,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: true },
             BROWSE: { SHOW: false },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       renderWithTheme(<ToggleTabs />);
@@ -163,7 +184,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: false },
             BROWSE: { SHOW: false },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       renderWithTheme(<ToggleTabs />);
@@ -185,7 +206,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: true },
             BROWSE: { SHOW: true }, // Config says show, but role hides it (with comingSoon)
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       renderWithTheme(<ToggleTabs />);
@@ -208,7 +229,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: true },
             BROWSE: { SHOW: false },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       renderWithTheme(<ToggleTabs />);
@@ -228,7 +249,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: false },
             BROWSE: { SHOW: false },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       // Falls back to defaultBehavior, only one tab visible = returns null
@@ -246,7 +267,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: true },
             BROWSE: { SHOW: false },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       renderWithTheme(<ToggleTabs />);
@@ -266,7 +287,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: false },
             BROWSE: { SHOW: false },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       const { container } = renderWithTheme(<ToggleTabs />);
@@ -281,7 +302,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: true },
             BROWSE: { SHOW: false },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       const { container } = renderWithTheme(<ToggleTabs />);
@@ -296,7 +317,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: false },
             BROWSE: { SHOW: true },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       const { container } = renderWithTheme(<ToggleTabs />);
@@ -311,7 +332,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: false },
             BROWSE: { SHOW: false },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       const { container } = renderWithTheme(<ToggleTabs />);
@@ -326,7 +347,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: true },
             BROWSE: { SHOW: false },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       renderWithTheme(<ToggleTabs />);
@@ -342,7 +363,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: false },
             BROWSE: { SHOW: true },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       renderWithTheme(<ToggleTabs />);
@@ -358,7 +379,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: true },
             BROWSE: { SHOW: true },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       renderWithTheme(<ToggleTabs />);
@@ -374,7 +395,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: true },
             BROWSE: { SHOW: true },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       renderWithTheme(<ToggleTabs />);
@@ -395,7 +416,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: true },
             BROWSE: { SHOW: false },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       // Role "3" has browse.comingSoon: true, so 3 tabs should show
@@ -416,7 +437,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: false },
             BROWSE: { SHOW: false },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       // Only one tab visible = returns null
@@ -432,7 +453,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: false },
             BROWSE: { SHOW: true },
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       renderWithTheme(<ToggleTabs />);
@@ -444,7 +465,7 @@ describe("ToggleTabs", () => {
             search: { show: false },
             browse: { show: true },
           }),
-        })
+        }),
       );
     });
 
@@ -460,7 +481,7 @@ describe("ToggleTabs", () => {
       mockState.userData = undefined;
 
       vi.mocked(useGlobalState).mockReturnValue(
-        mockState as unknown as ReturnType<typeof useGlobalState>
+        mockState as unknown as ReturnType<typeof useGlobalState>,
       );
 
       renderWithTheme(<ToggleTabs />);
@@ -479,10 +500,12 @@ describe("ToggleTabs", () => {
         },
       });
       // Set userData without user_metadata
-      (mockState as { userData: unknown }).userData = { email: "test@example.com" };
+      (mockState as { userData: unknown }).userData = {
+        email: "test@example.com",
+      };
 
       vi.mocked(useGlobalState).mockReturnValue(
-        mockState as unknown as ReturnType<typeof useGlobalState>
+        mockState as unknown as ReturnType<typeof useGlobalState>,
       );
 
       renderWithTheme(<ToggleTabs />);
@@ -510,7 +533,7 @@ describe("ToggleTabs", () => {
             SEARCH: { SHOW: false }, // Should hide Search tab
             BROWSE: { SHOW: false }, // Should hide Browse tab
           },
-        }) as unknown as ReturnType<typeof useGlobalState>
+        }) as unknown as ReturnType<typeof useGlobalState>,
       );
 
       // With the fix, only Chat should be visible - but since only 1 tab, returns null

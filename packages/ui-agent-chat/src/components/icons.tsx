@@ -55,7 +55,11 @@ export const SpinnerIcon: React.FC<IconProps> = ({ size = 18, className }) => (
 );
 
 /** MD3 Outlined: check */
-export const CheckIcon: React.FC<IconProps> = ({ size = 18, className, style }) => (
+export const CheckIcon: React.FC<IconProps> = ({
+  size = 18,
+  className,
+  style,
+}) => (
   <svg
     width={size}
     height={size}
@@ -144,7 +148,11 @@ export const BrainIcon: React.FC<IconProps> = ({ size = 18, className }) => (
 );
 
 /** MD3 Outlined: arrow_upward */
-export const SendIcon: React.FC<IconProps> = ({ size = 18, className, style }) => (
+export const SendIcon: React.FC<IconProps> = ({
+  size = 18,
+  className,
+  style,
+}) => (
   <svg
     width={size}
     height={size}
@@ -158,7 +166,11 @@ export const SendIcon: React.FC<IconProps> = ({ size = 18, className, style }) =
 );
 
 /** MD3 Outlined: stop_circle */
-export const StopIcon: React.FC<IconProps> = ({ size = 18, className, style }) => (
+export const StopIcon: React.FC<IconProps> = ({
+  size = 18,
+  className,
+  style,
+}) => (
   <svg
     width={size}
     height={size}
@@ -172,10 +184,7 @@ export const StopIcon: React.FC<IconProps> = ({ size = 18, className, style }) =
 );
 
 /** MD3 Outlined: description */
-export const FileTextIcon: React.FC<IconProps> = ({
-  size = 18,
-  className,
-}) => (
+export const FileTextIcon: React.FC<IconProps> = ({ size = 18, className }) => (
   <svg
     width={size}
     height={size}

@@ -124,15 +124,17 @@ export const EmptyStateSendButton = styled.div<{ $disabled?: boolean }>`
       height: 24px;
     }
 
-    ${$disabled &&
-    css`
-      background-color: ${theme.colors.athensGray3 || "#F2F4F7"};
-      cursor: default;
+    ${
+      $disabled &&
+      css`
+        background-color: ${theme.colors.athensGray3 || "#F2F4F7"};
+        cursor: default;
 
-      svg {
-        fill: ${theme.colors.gullGray};
-      }
-    `}
+        svg {
+          fill: ${theme.colors.gullGray};
+        }
+      `
+    }
   `}
 `;
 

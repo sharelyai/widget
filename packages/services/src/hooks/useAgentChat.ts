@@ -359,8 +359,7 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
           // legacy "sources" event enrichment, but do NOT extract sources from
           // tool output. Canonical unified sources arrive via "source" events.
           const toolOutput = event.output as
-            | Record<string, unknown>
-            | undefined;
+            Record<string, unknown> | undefined;
           if (toolOutput?.dataArraySortedWithSource) {
             const rawSources = toolOutput.dataArraySortedWithSource as Array<{
               text: string;

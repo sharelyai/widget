@@ -3,7 +3,11 @@ import { useGlobalStore } from "../stores/globalStore";
 import { useSharelyContext } from "../provider";
 import { regex } from "../utils/regex";
 import { getMessageCompletion } from "../utils/getMessageCompletion";
-import { CONVERSATIONS_TYPE_USER, CONVERSATIONS_TYPE_AI, SPACE } from "../constants";
+import {
+  CONVERSATIONS_TYPE_USER,
+  CONVERSATIONS_TYPE_AI,
+  SPACE,
+} from "../constants";
 
 interface SendMessageProps {
   message: string;
@@ -28,7 +32,11 @@ export const useSendMessage = () => {
     setStatusMessage: (status: string) => void;
   }) => {
     const { spaceId, languageId, setStatusMessage } = props;
-    const responseGreeting = await apiClient.spaces.getGreeting(spaceId, languageId, true);
+    const responseGreeting = await apiClient.spaces.getGreeting(
+      spaceId,
+      languageId,
+      true,
+    );
 
     if (!responseGreeting?.greeting?.group) {
       setStatusMessage("resolved");
@@ -42,7 +50,7 @@ export const useSendMessage = () => {
     response: Response,
     signal: AbortSignal,
     queryClient: any,
-    queryKey: any
+    queryKey: any,
   ) => {
     let messageString = "";
     let id = "";
@@ -137,7 +145,7 @@ export const useSendMessage = () => {
         });
         if (!newGroupId) return;
         currentGroup = newGroupId;
-        
+
         useSpacesMessagesKey = [
           "spaces-messages",
           spaceId,
@@ -170,7 +178,7 @@ export const useSendMessage = () => {
         message,
         currentGroup,
         langKnowledge,
-        signal
+        signal,
       );
 
       queryClient.setQueryData(emptyQuery, null);
@@ -192,17 +200,22 @@ export const useSendMessage = () => {
 
       if (!currentGroupId && currentGroup) {
         const countMessages = queryClient.getQueryData<{ messages: any[] }>(
-          useSpacesMessagesKey
+          useSpacesMessagesKey,
         );
 
         if (countMessages?.messages?.length === 3) {
           try {
-            const res = await apiClient.spaces.updateGroup(spaceId, currentGroup);
+            const res = await apiClient.spaces.updateGroup(
+              spaceId,
+              currentGroup,
+            );
             const spacesKey = ["spaces", currentSpace?.id];
             // Also need to handle public-spaces key if applicable, matching original logic
             const spacesData = queryClient.getQueryData(spacesKey);
-            const targetKey = spacesData ? spacesKey : ["public-spaces", currentSpace?.id];
-            
+            const targetKey = spacesData
+              ? spacesKey
+              : ["public-spaces", currentSpace?.id];
+
             queryClient.setQueryData(targetKey, (prev: any) => ({
               ...prev,
               spaceGroupConversation: [

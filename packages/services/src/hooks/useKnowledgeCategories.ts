@@ -7,10 +7,13 @@ interface UseKnowledgeCategoriesProps {
   categoryId?: string;
 }
 
-export const useKnowledgeCategories = ({ enabled = true, categoryId = "" }: UseKnowledgeCategoriesProps = {}) => {
+export const useKnowledgeCategories = ({
+  enabled = true,
+  categoryId = "",
+}: UseKnowledgeCategoriesProps = {}) => {
   const { config: storeConfig, userData, token } = useGlobalStore();
   const { apiClient } = useSharelyContext();
-  
+
   const customerRoleId = userData?.metadata?.customerRoleId;
   const workspaceId = storeConfig?.workspaceId;
   const langKnowledge = storeConfig?.langKnowledge;
@@ -27,7 +30,11 @@ export const useKnowledgeCategories = ({ enabled = true, categoryId = "" }: UseK
     ],
     queryFn: () => {
       if (!workspaceId) return [];
-      return apiClient.knowledge.getCategories(workspaceId, langKnowledge, categoryId);
+      return apiClient.knowledge.getCategories(
+        workspaceId,
+        langKnowledge,
+        categoryId,
+      );
     },
     enabled: isEnabled,
     staleTime: 1000 * 60 * 5, // 5 minutes

@@ -152,14 +152,17 @@ export function reasoningPartsToThinkingSteps(
 /**
  * Extract ToolCall[] from UIMessage parts (for existing ToolCallCard component)
  */
-export function toolInvocationPartsToToolCalls(
-  parts: AnyPart[],
-): ToolCall[] {
+export function toolInvocationPartsToToolCalls(parts: AnyPart[]): ToolCall[] {
   const calls: ToolCall[] = [];
 
   for (const part of parts) {
     // Handle both static tool parts (type: "tool-*") and dynamic tool parts
-    if (part.type === "dynamic-tool" || (typeof part.type === "string" && part.type.startsWith("tool-") && part.type !== "tool-input-available")) {
+    if (
+      part.type === "dynamic-tool" ||
+      (typeof part.type === "string" &&
+        part.type.startsWith("tool-") &&
+        part.type !== "tool-input-available")
+    ) {
       const p = part as any;
       const toolCallId = p.toolCallId || `tool-${calls.length}`;
       const toolName = p.toolName || part.type.replace("tool-", "");
@@ -174,7 +177,10 @@ export function toolInvocationPartsToToolCalls(
       } else if (p.state === "output-error") {
         status = "error";
         error = p.errorText;
-      } else if (p.state === "input-available" || p.state === "input-streaming") {
+      } else if (
+        p.state === "input-available" ||
+        p.state === "input-streaming"
+      ) {
         status = "running";
       }
 
@@ -195,9 +201,7 @@ export function toolInvocationPartsToToolCalls(
 /**
  * Extract Source[] from UIMessage parts (for existing SourcesList component)
  */
-export function sourcePartsToSources(
-  parts: AnyPart[],
-): Source[] {
+export function sourcePartsToSources(parts: AnyPart[]): Source[] {
   const sources: Source[] = [];
 
   for (const part of parts) {

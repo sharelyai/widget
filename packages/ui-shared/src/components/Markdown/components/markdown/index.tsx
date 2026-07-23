@@ -1,5 +1,5 @@
-import { Anchor } from './anchor';
-import { Li } from './li';
+import { Anchor } from "./anchor";
+import { Li } from "./li";
 
 export const Markdown = {
   Anchor,

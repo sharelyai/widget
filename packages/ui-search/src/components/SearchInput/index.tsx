@@ -25,10 +25,12 @@ const Wrapper: any = styled.div.withConfig({
       padding: 20px 16px 24px 16px;
     }
 
-    ${$hasSearch &&
-    css`
-      padding: 16px 120px;
-    `}
+    ${
+      $hasSearch &&
+      css`
+        padding: 16px 120px;
+      `
+    }
 
     & > .content {
       display: flex;

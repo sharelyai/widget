@@ -37,7 +37,7 @@ export const getGlobalEnvStatus = (): string | null => {
 export const getGlobalEnvHeaders = (): Record<string, string> => {
   const status = getGlobalEnvStatus();
   if (status) {
-    return { 'x-sharely-environment': status };
+    return { "x-sharely-environment": status };
   }
   return {};
 };

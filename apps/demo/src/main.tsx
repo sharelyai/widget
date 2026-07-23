@@ -1,21 +1,21 @@
-import './config'; // Initialize global store with env vars — must be first
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Layout from './components/Layout.tsx';
-import Playground from './pages/Playground.tsx';
-import FullDemo from './pages/FullDemo.tsx';
-import ModesDemo from './pages/ModesDemo.tsx';
-import InlineDemo from './pages/InlineDemo.tsx';
-import ChatOnly from './pages/ChatOnly.tsx';
-import SearchOnly from './pages/SearchOnly.tsx';
-import BrowseOnly from './pages/BrowseOnly.tsx';
-import AgentChatOnly from './pages/AgentChatOnly.tsx';
-import UiShared from './pages/UiShared.tsx';
-import CustomShell from './pages/CustomShell.tsx';
-import HeadlessDemo from './pages/HeadlessDemo.tsx';
+import "./config"; // Initialize global store with env vars — must be first
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Layout from "./components/Layout.tsx";
+import Playground from "./pages/Playground.tsx";
+import FullDemo from "./pages/FullDemo.tsx";
+import ModesDemo from "./pages/ModesDemo.tsx";
+import InlineDemo from "./pages/InlineDemo.tsx";
+import ChatOnly from "./pages/ChatOnly.tsx";
+import SearchOnly from "./pages/SearchOnly.tsx";
+import BrowseOnly from "./pages/BrowseOnly.tsx";
+import AgentChatOnly from "./pages/AgentChatOnly.tsx";
+import UiShared from "./pages/UiShared.tsx";
+import CustomShell from "./pages/CustomShell.tsx";
+import HeadlessDemo from "./pages/HeadlessDemo.tsx";
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Router>
       <Routes>

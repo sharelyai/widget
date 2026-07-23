@@ -94,10 +94,7 @@ export function createSharelyStreamAdapter(): TransformStream<
     { pageNumber: number; filename: string; text: string }
   >();
 
-  function processEvent(
-    eventType: string,
-    dataContent: string,
-  ): string {
+  function processEvent(eventType: string, dataContent: string): string {
     let output = "";
 
     try {
@@ -176,8 +173,7 @@ export function createSharelyStreamAdapter(): TransformStream<
           const event = data as ToolResultEvent;
           // Capture raw source data for later merging
           const resultOutput = event.output as
-            | Record<string, unknown>
-            | undefined;
+            Record<string, unknown> | undefined;
           if (resultOutput?.dataArraySortedWithSource) {
             const rawSources = resultOutput.dataArraySortedWithSource as Array<{
               text: string;
@@ -190,7 +186,10 @@ export function createSharelyStreamAdapter(): TransformStream<
           }
 
           // Extract and emit sources from semantic_search sourcesMetadata
-          if (resultOutput?.sourcesMetadata && Array.isArray(resultOutput.sourcesMetadata)) {
+          if (
+            resultOutput?.sourcesMetadata &&
+            Array.isArray(resultOutput.sourcesMetadata)
+          ) {
             const extracted = extractSourcesFromSemanticSearch(
               resultOutput.sourcesMetadata as any[],
             );
@@ -239,8 +238,7 @@ export function createSharelyStreamAdapter(): TransformStream<
           const event = data as ToolCallEndEvent;
           // Capture raw source data for later merging
           const toolOutput = event.output as
-            | Record<string, unknown>
-            | undefined;
+            Record<string, unknown> | undefined;
           if (toolOutput?.dataArraySortedWithSource) {
             const rawSources = toolOutput.dataArraySortedWithSource as Array<{
               text: string;
@@ -253,7 +251,10 @@ export function createSharelyStreamAdapter(): TransformStream<
           }
 
           // Extract and emit sources from semantic_search sourcesMetadata
-          if (toolOutput?.sourcesMetadata && Array.isArray(toolOutput.sourcesMetadata)) {
+          if (
+            toolOutput?.sourcesMetadata &&
+            Array.isArray(toolOutput.sourcesMetadata)
+          ) {
             const extracted = extractSourcesFromSemanticSearch(
               toolOutput.sourcesMetadata as any[],
             );

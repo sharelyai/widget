@@ -245,7 +245,7 @@ export interface UseAgentThreadsReturn {
   createThread: (title?: string) => Promise<AgentThread>;
   updateThread: (
     threadId: string,
-    data: { title?: string; status?: string }
+    data: { title?: string; status?: string },
   ) => Promise<void>;
   deleteThread: (threadId: string) => Promise<void>;
   deleteAllThreads: () => Promise<void>;

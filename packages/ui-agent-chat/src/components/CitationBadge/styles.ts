@@ -17,7 +17,9 @@ export const BadgeWrapper = styled.button`
     font-weight: 600;
     color: ${theme.colors.fiord};
     vertical-align: middle;
-    transition: background-color 0.15s, color 0.15s;
+    transition:
+      background-color 0.15s,
+      color 0.15s;
 
     &:hover {
       background: ${theme.colors.cornflowerBlue};
@@ -80,41 +82,53 @@ export const TypeBadge = styled.span<{ $type: string }>`
     font-weight: 500;
     text-transform: capitalize;
 
-    ${$type === "knowledge" &&
-    css`
-      background: ${theme.colors.athensGray2};
-      color: ${theme.colors.fiord};
-    `}
+    ${
+      $type === "knowledge" &&
+      css`
+        background: ${theme.colors.athensGray2};
+        color: ${theme.colors.fiord};
+      `
+    }
 
-    ${$type === "atom" &&
-    css`
-      background: ${theme.colors.selago};
-      color: ${theme.colors.mediumPurple};
-    `}
+    ${
+      $type === "atom" &&
+      css`
+        background: ${theme.colors.selago};
+        color: ${theme.colors.mediumPurple};
+      `
+    }
 
-    ${$type === "taxonomy" &&
-    css`
-      background: ${theme.colors.foam};
-      color: ${theme.colors.mountainMeadow};
-    `}
+    ${
+      $type === "taxonomy" &&
+      css`
+        background: ${theme.colors.foam};
+        color: ${theme.colors.mountainMeadow};
+      `
+    }
 
-    ${$type === "role" &&
-    css`
-      background: ${theme.colors.provincialPink};
-      color: ${theme.colors.flamingo};
-    `}
+    ${
+      $type === "role" &&
+      css`
+        background: ${theme.colors.provincialPink};
+        color: ${theme.colors.flamingo};
+      `
+    }
 
-    ${$type === "document" &&
-    css`
-      background: ${theme.colors.athensGray2};
-      color: ${theme.colors.fiord};
-    `}
+    ${
+      $type === "document" &&
+      css`
+        background: ${theme.colors.athensGray2};
+        color: ${theme.colors.fiord};
+      `
+    }
 
-    ${$type === "url" &&
-    css`
-      background: ${theme.colors.lightSkyBlue};
-      color: ${theme.colors.royalBlue};
-    `}
+    ${
+      $type === "url" &&
+      css`
+        background: ${theme.colors.lightSkyBlue};
+        color: ${theme.colors.royalBlue};
+      `
+    }
   `}
 `;
 

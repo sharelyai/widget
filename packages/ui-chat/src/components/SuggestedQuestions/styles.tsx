@@ -50,10 +50,7 @@ export const Wrapper: any = styled.div`
 
       & > .sharelyai-webcontroller-subheader {
         width: 100%;
-        color: var(
-          --web-control-styles-main_color,
-          ${theme.colors.ebony}
-        );
+        color: var(--web-control-styles-main_color, ${theme.colors.ebony});
         font-size: ${theme.fonts.lg};
         text-align: center;
         font-weight: 500;

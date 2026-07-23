@@ -76,8 +76,8 @@ global API. Drop two scripts on any page:
 <script src="https://your-deployment.example.com/assets/sharelyai.js"></script>
 <script>
   window.sharelyai.initialize({
-    workspaceId: 'YOUR_WORKSPACE_ID',
-    baseUrl: 'https://api.sharely.ai',
+    workspaceId: "YOUR_WORKSPACE_ID",
+    baseUrl: "https://api.sharely.ai",
   });
   window.sharelyai.render();
 </script>
@@ -105,14 +105,14 @@ For deeper local-dev and fork-deployment guidance, see [`CONTRIBUTING.md`](./CON
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `pnpm install` | Install all workspace dependencies |
-| `pnpm dev` | Start dev mode for all packages (Turbo, persistent, uncached) |
-| `pnpm build` | Build all packages in dependency order (`^build`) |
-| `pnpm lint` | Lint all packages |
-| `pnpm test` | Run tests (vitest) across packages |
-| `pnpm clean` | Remove all `dist/` and `node_modules/` |
+| Command        | Description                                                   |
+| -------------- | ------------------------------------------------------------- |
+| `pnpm install` | Install all workspace dependencies                            |
+| `pnpm dev`     | Start dev mode for all packages (Turbo, persistent, uncached) |
+| `pnpm build`   | Build all packages in dependency order (`^build`)             |
+| `pnpm lint`    | Lint all packages                                             |
+| `pnpm test`    | Run tests (vitest) across packages                            |
+| `pnpm clean`   | Remove all `dist/` and `node_modules/`                        |
 
 Filter to a specific package or example:
 
@@ -130,10 +130,10 @@ the `dev` task is persistent and uncached.
 Copy `.env.example` to `.env` at the repo root. The widget and demos read these
 Vite-prefixed variables:
 
-| Variable | Description |
-|----------|-------------|
+| Variable               | Description                                                                     |
+| ---------------------- | ------------------------------------------------------------------------------- |
 | `VITE_API_DEFAULT_URL` | Backend API the widget talks to. Defaults to `https://api.sharely.ai` if unset. |
-| `VITE_WORKSPACE_ID` | Workspace identifier issued by your backend. |
+| `VITE_WORKSPACE_ID`    | Workspace identifier issued by your backend.                                    |
 
 ## Architecture
 
@@ -162,16 +162,16 @@ publishable libraries live under `packages/`. Per-package usage examples live un
 
 ## Packages
 
-| Package | Location | Description |
-|---------|----------|-------------|
-| `@sharelyai/widget-services` | `packages/services` | Foundation — API client, React hooks, Zustand store, types, auth, i18n |
-| `@sharelyai/widget-ui-shared` | `packages/ui-shared` | Shared UI primitives — theme, base components, icons |
-| `@sharelyai/widget-ui-chat` | `packages/ui-chat` | Standard chat panel with messages and workflow progress |
-| `@sharelyai/widget-ui-search` | `packages/ui-search` | Search panel with results and tag filtering |
-| `@sharelyai/widget-ui-browse` | `packages/ui-browse` | Browse panel with category tree and content view (depends on ui-search) |
+| Package                           | Location                 | Description                                                                                  |
+| --------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------- |
+| `@sharelyai/widget-services`      | `packages/services`      | Foundation — API client, React hooks, Zustand store, types, auth, i18n                       |
+| `@sharelyai/widget-ui-shared`     | `packages/ui-shared`     | Shared UI primitives — theme, base components, icons                                         |
+| `@sharelyai/widget-ui-chat`       | `packages/ui-chat`       | Standard chat panel with messages and workflow progress                                      |
+| `@sharelyai/widget-ui-search`     | `packages/ui-search`     | Search panel with results and tag filtering                                                  |
+| `@sharelyai/widget-ui-browse`     | `packages/ui-browse`     | Browse panel with category tree and content view (depends on ui-search)                      |
 | `@sharelyai/widget-ui-agent-chat` | `packages/ui-agent-chat` | Agent chat — SSE-streamed responses with thinking indicators, tool-call cards, and citations |
-| `@sharelyai/widget` | `apps/webcontrol` | Shell that composes all feature packages into the `WebControl` component + embed bundle |
-| `@sharelyai/demo` | `apps/demo` | Vite demo app with integration examples |
+| `@sharelyai/widget`               | `apps/webcontrol`        | Shell that composes all feature packages into the `WebControl` component + embed bundle      |
+| `@sharelyai/demo`                 | `apps/demo`              | Vite demo app with integration examples                                                      |
 
 ## Key patterns
 
@@ -198,20 +198,20 @@ publishable libraries live under `packages/`. Per-package usage examples live un
 floating launcher with a toggleable drawer containing the chat, search, browse, and
 agent views. It accepts (all props optional):
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `workspaceId` | `string` | Workspace identifier |
-| `baseUrl` | `string` | API base URL (falls back to the default API) |
-| `externalUserId` | `string` | External user identifier (only asserted alongside a host token) |
-| `lang` | `string` | Language code (also sets `langKnowledge`) |
-| `theme` | `object` | Partial theme override passed to `ThemeProvider` |
-| `displayMode` | `DisplayModeConfig` | Display configuration (width, height, z-index, open-by-default, private mode) |
-| `mode` | `string` | Launcher position — must be one of `constants.POSITIONS` (floating, inline, …) |
-| `justChat` | `boolean` | Initialize immediately in a chat-only flow |
-| `closedText` | `string` | Text shown on the collapsed launcher |
-| `avatarmodeDesktop` | `string` | Desktop avatar mode (e.g. compact) |
-| `avatarmodeMobile` | `string` | Mobile avatar mode |
-| `onError` | `(error: Error) => void` | Error callback |
+| Prop                | Type                     | Description                                                                    |
+| ------------------- | ------------------------ | ------------------------------------------------------------------------------ |
+| `workspaceId`       | `string`                 | Workspace identifier                                                           |
+| `baseUrl`           | `string`                 | API base URL (falls back to the default API)                                   |
+| `externalUserId`    | `string`                 | External user identifier (only asserted alongside a host token)                |
+| `lang`              | `string`                 | Language code (also sets `langKnowledge`)                                      |
+| `theme`             | `object`                 | Partial theme override passed to `ThemeProvider`                               |
+| `displayMode`       | `DisplayModeConfig`      | Display configuration (width, height, z-index, open-by-default, private mode)  |
+| `mode`              | `string`                 | Launcher position — must be one of `constants.POSITIONS` (floating, inline, …) |
+| `justChat`          | `boolean`                | Initialize immediately in a chat-only flow                                     |
+| `closedText`        | `string`                 | Text shown on the collapsed launcher                                           |
+| `avatarmodeDesktop` | `string`                 | Desktop avatar mode (e.g. compact)                                             |
+| `avatarmodeMobile`  | `string`                 | Mobile avatar mode                                                             |
+| `onError`           | `(error: Error) => void` | Error callback                                                                 |
 
 > The `WebControlProps` type also declares `defaultView` and `onReady`. These are
 > currently part of the type surface but not yet wired into the component — treat
@@ -223,13 +223,13 @@ The bundle exposes a `window.sharelyai` global (also exported as `sharelyai` fro
 `@sharelyai/widget`). It mounts into the element with id
 `sharelyai-webcontroller-id`.
 
-| Method | Description |
-|--------|-------------|
-| `initialize(config)` | Set the config in the global store. Accepts `SharelyConfig` plus optional `externalToken` / `spaceId`. Maps legacy `api` → `baseUrl`. Destroys any previous instance first. |
-| `render()` | Mount the `WebControl` into `#sharelyai-webcontroller-id` |
-| `updateConfig(partial)` | Shallow-merge new config into the store at runtime |
-| `config()` | Read the current config (including resolved `env`) |
-| `destroy()` | Unmount and clean up the instance |
+| Method                  | Description                                                                                                                                                                 |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `initialize(config)`    | Set the config in the global store. Accepts `SharelyConfig` plus optional `externalToken` / `spaceId`. Maps legacy `api` → `baseUrl`. Destroys any previous instance first. |
+| `render()`              | Mount the `WebControl` into `#sharelyai-webcontroller-id`                                                                                                                   |
+| `updateConfig(partial)` | Shallow-merge new config into the store at runtime                                                                                                                          |
+| `config()`              | Read the current config (including resolved `env`)                                                                                                                          |
+| `destroy()`             | Unmount and clean up the instance                                                                                                                                           |
 
 ## Examples
 
@@ -237,13 +237,13 @@ The bundle exposes a `window.sharelyai` global (also exported as `sharelyai` fro
 minimal implementation snippet and a link to the live demo route that runs it.
 **Examples teach the parts; the demo app shows the whole.**
 
-| Doc | Package | Shows | Runnable route |
-|-----|---------|-------|----------------|
-| [services.md](./examples/services.md) | `@sharelyai/widget-services` | Data layer only — API client, hooks, store, no UI | `/headless-demo` |
-| [ui-shared.md](./examples/ui-shared.md) | `@sharelyai/widget-ui-shared` | Theme system + base components + icons, no data | `/ui-shared` |
-| [ui-chat.md](./examples/ui-chat.md) | `@sharelyai/widget-ui-chat` | `ChatPanel` | `/chat-only` |
-| [ui-search.md](./examples/ui-search.md) | `@sharelyai/widget-ui-search` | `SearchPanel` | `/search-only` |
-| [ui-browse.md](./examples/ui-browse.md) | `@sharelyai/widget-ui-browse` | `BrowsePanel` (depends on ui-search) | `/browse-only` |
+| Doc                                             | Package                           | Shows                                                             | Runnable route     |
+| ----------------------------------------------- | --------------------------------- | ----------------------------------------------------------------- | ------------------ |
+| [services.md](./examples/services.md)           | `@sharelyai/widget-services`      | Data layer only — API client, hooks, store, no UI                 | `/headless-demo`   |
+| [ui-shared.md](./examples/ui-shared.md)         | `@sharelyai/widget-ui-shared`     | Theme system + base components + icons, no data                   | `/ui-shared`       |
+| [ui-chat.md](./examples/ui-chat.md)             | `@sharelyai/widget-ui-chat`       | `ChatPanel`                                                       | `/chat-only`       |
+| [ui-search.md](./examples/ui-search.md)         | `@sharelyai/widget-ui-search`     | `SearchPanel`                                                     | `/search-only`     |
+| [ui-browse.md](./examples/ui-browse.md)         | `@sharelyai/widget-ui-browse`     | `BrowsePanel` (depends on ui-search)                              | `/browse-only`     |
 | [ui-agent-chat.md](./examples/ui-agent-chat.md) | `@sharelyai/widget-ui-agent-chat` | `AgentChatPanel` — SSE streaming, thinking, tool calls, citations | `/agent-chat-only` |
 
 Every feature package needs the same two wraps — `SharelyProvider` (from services)

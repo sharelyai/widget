@@ -1,4 +1,9 @@
-import { ErrorCard, ErrorContent, ErrorText, ErrorRetryButton } from "../styles";
+import {
+  ErrorCard,
+  ErrorContent,
+  ErrorText,
+  ErrorRetryButton,
+} from "../styles";
 import { ErrorOutlineIcon, RefreshIcon } from "../icons";
 
 interface ErrorMessageProps {

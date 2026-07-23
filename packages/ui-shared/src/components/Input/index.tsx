@@ -1,5 +1,5 @@
-import React, { InputHTMLAttributes } from 'react';
-import styled, { css } from 'styled-components';
+import React, { InputHTMLAttributes } from "react";
+import styled, { css } from "styled-components";
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {}
 
@@ -13,11 +13,11 @@ const StyledInput = styled.input<InputProps>`
     font-size: ${theme.fonts.sm};
     color: ${theme.colors.ebony};
     outline: none;
-    
+
     &:focus {
       border-color: ${theme.colors.primary};
     }
-    
+
     &::placeholder {
       color: ${theme.colors.gullGray};
     }

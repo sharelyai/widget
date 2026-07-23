@@ -141,7 +141,9 @@ describe("createSharelyStreamAdapter", () => {
 
     const chunks = parseOutputChunks(output);
     expect(chunks.some((c) => c.type === "reasoning-start")).toBe(true);
-    expect(chunks.some((c) => c.type === "reasoning-delta" && c.delta === "Step 1")).toBe(true);
+    expect(
+      chunks.some((c) => c.type === "reasoning-delta" && c.delta === "Step 1"),
+    ).toBe(true);
     expect(chunks.some((c) => c.type === "reasoning-end")).toBe(true);
   });
 
@@ -292,7 +294,9 @@ describe("createSharelyStreamAdapter", () => {
 
     const chunks = parseOutputChunks(output);
     expect(chunks.some((c) => c.type === "finish-step")).toBe(true);
-    expect(chunks.some((c) => c.type === "finish" && c.finishReason === "stop")).toBe(true);
+    expect(
+      chunks.some((c) => c.type === "finish" && c.finishReason === "stop"),
+    ).toBe(true);
   });
 
   it("converts error event", async () => {
@@ -310,9 +314,7 @@ describe("createSharelyStreamAdapter", () => {
   });
 
   it("converts done event to [DONE]", async () => {
-    const output = await runAdapter([
-      sse("done", { threadId: "t1" }),
-    ]);
+    const output = await runAdapter([sse("done", { threadId: "t1" })]);
 
     const chunks = parseOutputChunks(output);
     expect(chunks.some((c) => c.type === "__DONE__")).toBe(true);
@@ -327,10 +329,7 @@ describe("createSharelyStreamAdapter", () => {
     const bytes = new TextEncoder().encode(fullMessage);
     const mid = Math.floor(bytes.length / 2);
 
-    const output = await runAdapter([
-      bytes.slice(0, mid),
-      bytes.slice(mid),
-    ]);
+    const output = await runAdapter([bytes.slice(0, mid), bytes.slice(mid)]);
 
     const chunks = parseOutputChunks(output);
     const textDelta = chunks.find((c) => c.type === "text-delta");

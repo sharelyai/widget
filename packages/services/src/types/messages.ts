@@ -11,7 +11,7 @@ export interface MessageFeedbackSignal {
 
 export interface Message {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
   type?: string; // 'USER' | 'AI'
   timestamp?: Date | string;

@@ -9,14 +9,12 @@ describe("shouldTriggerAutoRename", () => {
   });
 
   it("returns false for greeting only", () => {
-    expect(
-      shouldTriggerAutoRename([{ role: "assistant" }])
-    ).toBe(false);
+    expect(shouldTriggerAutoRename([{ role: "assistant" }])).toBe(false);
   });
 
   it("returns false for greeting + user (no AI response yet)", () => {
     expect(
-      shouldTriggerAutoRename([{ role: "assistant" }, { role: "user" }])
+      shouldTriggerAutoRename([{ role: "assistant" }, { role: "user" }]),
     ).toBe(false);
   });
 
@@ -26,13 +24,13 @@ describe("shouldTriggerAutoRename", () => {
         { role: "assistant" },
         { role: "user" },
         { role: "assistant" },
-      ])
+      ]),
     ).toBe(true);
   });
 
   it("returns true for user + AI (no greeting)", () => {
     expect(
-      shouldTriggerAutoRename([{ role: "user" }, { role: "assistant" }])
+      shouldTriggerAutoRename([{ role: "user" }, { role: "assistant" }]),
     ).toBe(true);
   });
 
@@ -41,18 +39,14 @@ describe("shouldTriggerAutoRename", () => {
   });
 
   it("supports type-shaped messages (USER/AI)", () => {
-    expect(
-      shouldTriggerAutoRename([{ type: "USER" }, { type: "AI" }])
-    ).toBe(true);
+    expect(shouldTriggerAutoRename([{ type: "USER" }, { type: "AI" }])).toBe(
+      true,
+    );
     expect(shouldTriggerAutoRename([{ type: "AI" }])).toBe(false);
   });
 
   it("handles desc-ordered (newest-first) arrays", () => {
-    const newestFirst = [
-      { type: "AI" },
-      { type: "USER" },
-      { type: "AI" },
-    ];
+    const newestFirst = [{ type: "AI" }, { type: "USER" }, { type: "AI" }];
     expect(shouldTriggerAutoRename(newestFirst, "desc")).toBe(true);
 
     const greetingOnlyDesc = [{ type: "AI" }];

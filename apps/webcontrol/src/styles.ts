@@ -1,4 +1,4 @@
-import styled, { css, DefaultTheme } from 'styled-components';
+import styled, { css, DefaultTheme } from "styled-components";
 
 // ---------- Position mode helpers ----------
 
@@ -104,7 +104,7 @@ type WrapperProps = {
 };
 
 export const Wrapper = styled.div.withConfig({
-  shouldForwardProp: (prop) => !prop.startsWith('$'),
+  shouldForwardProp: (prop) => !prop.startsWith("$"),
 })<WrapperProps>`
   ${({ theme, $mode, $avatarCompact, $displayWidth, $displayHeight }) => css`
     /* Base / launcher state */
@@ -121,53 +121,62 @@ export const Wrapper = styled.div.withConfig({
     }
 
     /* ---- Position modes ---- */
-    ${$mode === 'top-center-floating' && positionTopCenterFloating(theme)}
-    ${$mode === 'bottom-center-floating' && positionBottomCenterFloating(theme)}
-    ${$mode === 'bottom-right-floating' && positionBottomRightFloating(theme)}
-    ${$mode === 'placed-floating' && positionPlacedFloating(theme)}
-    ${$mode === 'placed-inline' && positionPlacedInline(theme, $displayWidth)}
+    ${$mode === "top-center-floating" && positionTopCenterFloating(theme)}
+    ${$mode === "bottom-center-floating" && positionBottomCenterFloating(theme)}
+    ${$mode === "bottom-right-floating" && positionBottomRightFloating(theme)}
+    ${$mode === "placed-floating" && positionPlacedFloating(theme)}
+    ${$mode === "placed-inline" && positionPlacedInline(theme, $displayWidth)}
 
     /* If no mode or unrecognised, default to top-center-floating */
     ${!$mode && positionTopCenterFloating(theme)}
 
     /* ---- displayMode WIDTH / HEIGHT overrides ---- */
-    ${$displayWidth && css`
-      &.is-open {
-        width: ${$displayWidth} !important;
-      }
-    `}
-    ${$displayHeight && css`
-      &.is-open {
-        @media (min-width: ${theme.screens.lg}) {
-          height: ${$displayHeight} !important;
+    ${
+      $displayWidth &&
+      css`
+        &.is-open {
+          width: ${$displayWidth} !important;
         }
-      }
-    `}
+      `
+    }
+    ${
+      $displayHeight &&
+      css`
+        &.is-open {
+          @media (min-width: ${theme.screens.lg}) {
+            height: ${$displayHeight} !important;
+          }
+        }
+      `
+    }
 
     /* ---- Avatar compact mode (circle) ---- */
-    ${$avatarCompact && css`
-      border-radius: 100%;
-      min-width: 56px;
-      min-height: 56px;
-      width: 56px;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease-in-out;
+    ${
+      $avatarCompact &&
+      css`
+        border-radius: 100%;
+        min-width: 56px;
+        min-height: 56px;
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease-in-out;
 
-      .sharely-launcher {
-        min-width: unset;
-        .launcher-logo {
-          border: 1px solid ${theme.colors.athensGray2};
-          border-radius: 100%;
+        .sharely-launcher {
+          min-width: unset;
+          .launcher-logo {
+            border: 1px solid ${theme.colors.athensGray2};
+            border-radius: 100%;
+          }
+          .launcher-text,
+          .launcher-arrow {
+            display: none;
+          }
         }
-        .launcher-text,
-        .launcher-arrow {
-          display: none;
-        }
-      }
-    `}
+      `
+    }
 
     /* ---- Private display mode ---- */
     &.display-private {
@@ -218,8 +227,8 @@ export const Wrapper = styled.div.withConfig({
       height: 100vh;
       min-height: 400px;
       border-radius: 20px;
-      touch-action: ${$mode === 'placed-inline' ? 'auto' : 'none'};
-      -ms-touch-action: ${$mode === 'placed-inline' ? 'auto' : 'none'};
+      touch-action: ${$mode === "placed-inline" ? "auto" : "none"};
+      -ms-touch-action: ${$mode === "placed-inline" ? "auto" : "none"};
 
       /* Mobile: full screen */
       @media (max-width: ${theme.screens.lg}) {
@@ -259,9 +268,12 @@ export const Wrapper = styled.div.withConfig({
       overflow: hidden;
       min-height: inherit;
 
-      ${$mode === 'placed-inline' && css`
-        overflow: visible;
-      `}
+      ${
+        $mode === "placed-inline" &&
+        css`
+          overflow: visible;
+        `
+      }
 
       .web-control-header {
         padding: 16px 20px;
@@ -423,7 +435,6 @@ export const Wrapper = styled.div.withConfig({
         display: flex;
         overflow: hidden;
       }
-
     }
 
     /* Portal mount point for modals, dialogs, tooltips, etc. */

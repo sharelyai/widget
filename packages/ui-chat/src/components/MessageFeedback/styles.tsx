@@ -1,4 +1,4 @@
-import styled, { css } from 'styled-components';
+import styled, { css } from "styled-components";
 
 export const Wrapper: any = styled.div`
   ${({ theme }) => css`
@@ -40,10 +40,7 @@ export const Wrapper: any = styled.div`
 
         &.like svg,
         &.unlike svg {
-          fill: var(
-            --web-control-styles-main_color,
-            ${theme.colors.indigo}
-          );
+          fill: var(--web-control-styles-main_color, ${theme.colors.indigo});
         }
       }
     }

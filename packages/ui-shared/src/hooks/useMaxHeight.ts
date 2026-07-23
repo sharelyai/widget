@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 export const useMaxHeight = (
   height: number,
   greetingListRef?: React.RefObject<HTMLDivElement>,
-  messages?: any[]
+  messages?: any[],
 ) => {
   const [maxHeight, setMaxHeight] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(0);

@@ -1,4 +1,4 @@
-import styled, { css } from 'styled-components';
+import styled, { css } from "styled-components";
 
 type WrapperProps = {
   type?: string;
@@ -6,7 +6,7 @@ type WrapperProps = {
 
 export const Wrapper: any = styled.div<WrapperProps>`
   ${({ theme, type }) => {
-    const isAi = type === 'AI';
+    const isAi = type === "AI";
     return css`
       display: flex;
       align-items: flex-start;
@@ -106,7 +106,12 @@ export const Wrapper: any = styled.div<WrapperProps>`
           line-height: 28px;
           word-break: break-word;
 
-          h1, h2, h3, h4, h5, h6 {
+          h1,
+          h2,
+          h3,
+          h4,
+          h5,
+          h6 {
             margin: 16px 0 8px 0;
 
             &:first-child {
@@ -114,10 +119,24 @@ export const Wrapper: any = styled.div<WrapperProps>`
             }
           }
 
-          h1 { font-size: 1.5em; font-weight: 600; }
-          h2 { font-size: 1.3em; font-weight: 600; }
-          h3 { font-size: 1.15em; font-weight: 600; }
-          h4, h5, h6 { font-size: 1em; font-weight: 600; }
+          h1 {
+            font-size: 1.5em;
+            font-weight: 600;
+          }
+          h2 {
+            font-size: 1.3em;
+            font-weight: 600;
+          }
+          h3 {
+            font-size: 1.15em;
+            font-weight: 600;
+          }
+          h4,
+          h5,
+          h6 {
+            font-size: 1em;
+            font-weight: 600;
+          }
 
           p {
             margin: 0 0 8px 0;
@@ -127,7 +146,8 @@ export const Wrapper: any = styled.div<WrapperProps>`
             }
           }
 
-          ul, ol {
+          ul,
+          ol {
             margin: 8px 0;
             padding-left: 24px;
           }
@@ -258,34 +278,36 @@ export const Wrapper: any = styled.div<WrapperProps>`
       /* User messages render as a right-aligned chat bubble (avatar + name
          hidden), so the conversation reads as user-right / AI-left instead of
          every message stacking on the same side. */
-      ${!isAi &&
-      css`
-        justify-content: flex-end;
+      ${
+        !isAi &&
+        css`
+          justify-content: flex-end;
 
-        .sharelyai-webcontroller-content-message-image-ai,
-        .sharelyai-webcontroller-content-message-image-user {
-          display: none;
-        }
+          .sharelyai-webcontroller-content-message-image-ai,
+          .sharelyai-webcontroller-content-message-image-user {
+            display: none;
+          }
 
-        .sharelyai-webcontroller-content-message {
-          flex: 0 1 auto;
-          max-width: 82%;
-          align-items: flex-end;
-          padding: 10px 14px;
-          background: ${theme.colors.whiteLilac};
-          border-radius: 16px 16px 4px 16px;
-        }
+          .sharelyai-webcontroller-content-message {
+            flex: 0 1 auto;
+            max-width: 82%;
+            align-items: flex-end;
+            padding: 10px 14px;
+            background: ${theme.colors.whiteLilac};
+            border-radius: 16px 16px 4px 16px;
+          }
 
-        .sharelyai-webcontroller-content-message
-          .sharelyai-webcontroller-content-message-header {
-          display: none;
-        }
+          .sharelyai-webcontroller-content-message
+            .sharelyai-webcontroller-content-message-header {
+            display: none;
+          }
 
-        .sharelyai-webcontroller-content-message
-          .sharelyai-webcontroller-content-message-text {
-          text-align: left;
-        }
-      `}
+          .sharelyai-webcontroller-content-message
+            .sharelyai-webcontroller-content-message-text {
+            text-align: left;
+          }
+        `
+      }
     `;
   }}
 `;

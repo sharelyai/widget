@@ -11,7 +11,7 @@ interface UseAgentSSEOptions {
 // Parse SSE messages from buffer, returns remaining unparsed content
 function parseSSEMessages(
   buffer: string,
-  onMessage: (event: string, data: string) => void
+  onMessage: (event: string, data: string) => void,
 ): string {
   const messages = buffer.split("\n\n");
   const remaining = messages.pop() || "";
@@ -67,7 +67,7 @@ export function useAgentSSE() {
         if (!response.ok) {
           const errorText = await response.text().catch(() => "");
           throw new Error(
-            `HTTP ${response.status}: ${response.statusText}${errorText ? ` - ${errorText}` : ""}`
+            `HTTP ${response.status}: ${response.statusText}${errorText ? ` - ${errorText}` : ""}`,
           );
         }
 
@@ -92,7 +92,11 @@ export function useAgentSSE() {
               const data = JSON.parse(dataContent);
               options.onEvent(eventType as SSEEventType, data);
             } catch (e) {
-              console.error("[useAgentSSE] Failed to parse SSE data:", e, dataContent);
+              console.error(
+                "[useAgentSSE] Failed to parse SSE data:",
+                e,
+                dataContent,
+              );
             }
           });
         }
@@ -105,7 +109,11 @@ export function useAgentSSE() {
               const data = JSON.parse(dataContent);
               options.onEvent(eventType as SSEEventType, data);
             } catch (e) {
-              console.error("[useAgentSSE] Failed to parse remaining SSE data:", e, dataContent);
+              console.error(
+                "[useAgentSSE] Failed to parse remaining SSE data:",
+                e,
+                dataContent,
+              );
             }
           });
         }
@@ -117,7 +125,7 @@ export function useAgentSSE() {
         }
       }
     },
-    []
+    [],
   );
 
   const stopStream = useCallback(() => {

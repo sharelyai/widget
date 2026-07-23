@@ -2,7 +2,7 @@ export interface Space {
   id: string;
   name: string;
   description?: string;
-  status?: 'PRIVATE' | 'PUBLIC';
+  status?: "PRIVATE" | "PUBLIC";
   metadata?: Record<string, any>;
 }
 

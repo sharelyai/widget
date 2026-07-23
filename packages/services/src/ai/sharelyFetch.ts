@@ -8,15 +8,21 @@ import { getAuthToken, getAgentApiUrl } from "../api/agentApi";
 import { createSharelyStreamAdapter } from "./sharelyStreamAdapter";
 
 export function createSharelyFetch(): typeof fetch {
-  return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  return async (
+    input: RequestInfo | URL,
+    init?: RequestInit,
+  ): Promise<Response> => {
     const baseUrl = getAgentApiUrl();
     const token = getAuthToken();
 
     // The `input` from useChat is the `api` prop value (the endpoint path).
     // We need to prepend the base URL.
-    const url = typeof input === "string"
-      ? (input.startsWith("http") ? input : `${baseUrl}${input}`)
-      : input;
+    const url =
+      typeof input === "string"
+        ? input.startsWith("http")
+          ? input
+          : `${baseUrl}${input}`
+        : input;
 
     const headers = new Headers(init?.headers);
     headers.set("Content-Type", "application/json");

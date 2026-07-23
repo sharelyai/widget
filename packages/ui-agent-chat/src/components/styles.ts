@@ -410,13 +410,15 @@ export const ThinkingSourceChip = styled.a<{ $clickable: boolean }>`
       white-space: nowrap;
     }
 
-    ${$clickable &&
-    css`
-      &:hover {
-        border-color: ${theme.colors.mischka};
-        color: ${theme.colors.OxfordBlue};
-      }
-    `}
+    ${
+      $clickable &&
+      css`
+        &:hover {
+          border-color: ${theme.colors.mischka};
+          color: ${theme.colors.OxfordBlue};
+        }
+      `
+    }
   `}
 `;
 
@@ -461,7 +463,9 @@ export const CitePopover = styled.div`
     max-width: 340px;
     background: ${theme.colors.white};
     border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.12),
+      0 1px 4px rgba(0, 0, 0, 0.08);
     padding: 14px 16px;
     animation: ${fadeIn} 0.3s ease;
   `}
@@ -633,10 +637,15 @@ export const IconBtn = styled.button<{ $active?: boolean }>`
       color: ${theme.colors.OxfordBlue};
     }
 
-    ${$active &&
-    css`
-      color: var(--web-control-styles-main_color, ${theme.colors.mediumPurple});
-    `}
+    ${
+      $active &&
+      css`
+        color: var(
+          --web-control-styles-main_color,
+          ${theme.colors.mediumPurple}
+        );
+      `
+    }
   `}
 `;
 
@@ -681,19 +690,24 @@ export const FeedbackOption = styled.button<{ $active?: boolean }>`
     transition: all 0.15s;
     font-family: inherit;
 
-    ${$active &&
-    css`
-      border-color: var(
-        --web-control-styles-main_color,
-        ${theme.colors.mediumPurple}
-      );
-      background: color-mix(
-        in srgb,
-        var(--web-control-styles-main_color, ${theme.colors.mediumPurple}) 6%,
-        transparent
-      );
-      color: var(--web-control-styles-main_color, ${theme.colors.mediumPurple});
-    `}
+    ${
+      $active &&
+      css`
+        border-color: var(
+          --web-control-styles-main_color,
+          ${theme.colors.mediumPurple}
+        );
+        background: color-mix(
+          in srgb,
+          var(--web-control-styles-main_color, ${theme.colors.mediumPurple}) 6%,
+          transparent
+        );
+        color: var(
+          --web-control-styles-main_color,
+          ${theme.colors.mediumPurple}
+        );
+      `
+    }
   `}
 `;
 
@@ -744,30 +758,34 @@ export const FeedbackBtn = styled.button<{
     font-family: inherit;
     transition: all 0.15s;
 
-    ${$variant === "primary" &&
-    css`
-      background: var(
-        --web-control-styles-main_color,
-        ${theme.colors.mediumPurple}
-      );
-      color: ${theme.colors.white};
-      border: none;
+    ${
+      $variant === "primary" &&
+      css`
+        background: var(
+          --web-control-styles-main_color,
+          ${theme.colors.mediumPurple}
+        );
+        color: ${theme.colors.white};
+        border: none;
 
-      &:hover {
-        opacity: 0.9;
-      }
-    `}
+        &:hover {
+          opacity: 0.9;
+        }
+      `
+    }
 
-    ${$variant === "secondary" &&
-    css`
-      background: transparent;
-      color: ${theme.colors.paleSky};
-      border: 1px solid ${theme.colors.mischka};
+    ${
+      $variant === "secondary" &&
+      css`
+        background: transparent;
+        color: ${theme.colors.paleSky};
+        border: 1px solid ${theme.colors.mischka};
 
-      &:hover {
-        background: ${theme.colors.athensGray3};
-      }
-    `}
+        &:hover {
+          background: ${theme.colors.athensGray3};
+        }
+      `
+    }
   `}
 `;
 
@@ -891,10 +909,12 @@ export const SendButton = styled.button<{ $variant?: "danger" }>`
     background: var(--web-control-styles-main_color, ${theme.colors.indigo});
     color: ${theme.colors.white};
 
-    ${$variant === "danger" &&
-    css`
-      background: ${theme.colors.flamingo};
-    `}
+    ${
+      $variant === "danger" &&
+      css`
+        background: ${theme.colors.flamingo};
+      `
+    }
 
     &:disabled {
       background-color: ${theme.colors.athensGray3};
@@ -1009,17 +1029,19 @@ export const ModalContainer = styled.div<{ $overlay?: boolean }>`
     background: ${theme.colors.white};
     animation: ${fadeIn} 0.3s ease;
 
-    ${$overlay
-      ? css`
-          position: absolute;
-          inset: 0;
-          z-index: 10;
-        `
-      : css`
-          position: fixed;
-          inset: 0;
-          z-index: 1001;
-        `}
+    ${
+      $overlay
+        ? css`
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+          `
+        : css`
+            position: fixed;
+            inset: 0;
+            z-index: 1001;
+          `
+    }
   `}
 `;
 
@@ -1075,11 +1097,13 @@ export const ModalThreadItem = styled.div<{ $active?: boolean }>`
       background: ${theme.colors.athensGray3};
     }
 
-    ${$active &&
-    css`
-      background: ${theme.colors.athensGray3};
-      font-weight: 500;
-    `}
+    ${
+      $active &&
+      css`
+        background: ${theme.colors.athensGray3};
+        font-weight: 500;
+      `
+    }
   `}
 `;
 
@@ -1220,14 +1244,16 @@ export const ToolCallWrapper = styled.div<{ $error?: boolean }>`
     overflow: hidden;
     margin-bottom: 4px;
 
-    ${$error &&
-    css`
-      border-color: color-mix(
-        in srgb,
-        ${theme.colors.flamingo} 30%,
-        transparent
-      );
-    `}
+    ${
+      $error &&
+      css`
+        border-color: color-mix(
+          in srgb,
+          ${theme.colors.flamingo} 30%,
+          transparent
+        );
+      `
+    }
   `}
 `;
 

@@ -1,6 +1,6 @@
-import React, { ReactNode } from 'react';
-import styled, { css } from 'styled-components';
-import { Close } from '../../icons';
+import React, { ReactNode } from "react";
+import styled, { css } from "styled-components";
+import { Close } from "../../icons";
 
 interface ModalHeaderProps {
   title?: ReactNode;
@@ -18,7 +18,8 @@ const HeaderWrapper = styled.div`
     border-bottom: 1px solid ${theme.colors.mischka};
     margin-bottom: 16px;
 
-    .modal-header-left, .modal-header-right {
+    .modal-header-left,
+    .modal-header-right {
       display: flex;
       align-items: center;
       gap: 12px;
@@ -51,7 +52,12 @@ const HeaderWrapper = styled.div`
   `}
 `;
 
-export const ModalHeader = ({ title, onClose, leftContent, rightContent }: ModalHeaderProps) => (
+export const ModalHeader = ({
+  title,
+  onClose,
+  leftContent,
+  rightContent,
+}: ModalHeaderProps) => (
   <HeaderWrapper>
     <div className="modal-header-left">
       {leftContent}
@@ -60,7 +66,11 @@ export const ModalHeader = ({ title, onClose, leftContent, rightContent }: Modal
     <div className="modal-header-right">
       {rightContent}
       {onClose && (
-        <button className="modal-header-close" onClick={onClose} aria-label="Close">
+        <button
+          className="modal-header-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
           <Close />
         </button>
       )}

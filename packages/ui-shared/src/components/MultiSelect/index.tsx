@@ -23,13 +23,14 @@ export interface ButtonMultiSelectProps {
   padding?: string;
 }
 
-const Wrapper: any = styled.div` // Explicitly type styled component
+const Wrapper: any = styled.div`
+  // Explicitly type styled component
   position: relative;
   display: inline-block;
 `;
 
 const TagSelectorButton: any = styled.button.withConfig({
-  shouldForwardProp: (prop) => !prop.startsWith('$'),
+  shouldForwardProp: (prop) => !prop.startsWith("$"),
 })<{ $isOpen: boolean; $padding?: string }>`
   background: none;
   display: flex;
@@ -57,7 +58,8 @@ const TagSelectorButton: any = styled.button.withConfig({
   }
 `;
 
-const Dropdown: any = styled.div` // Explicitly type styled component
+const Dropdown: any = styled.div`
+  // Explicitly type styled component
   position: absolute;
   top: 120%;
   right: 0;
@@ -78,7 +80,8 @@ const Dropdown: any = styled.div` // Explicitly type styled component
   }
 `;
 
-const Option: any = styled.label` // Explicitly type styled component
+const Option: any = styled.label`
+  // Explicitly type styled component
   display: flex;
   padding: 8px 16px;
   align-items: center;
@@ -92,7 +95,8 @@ const Option: any = styled.label` // Explicitly type styled component
   cursor: pointer;
 `;
 
-const OptionLabel: any = styled.label` // Explicitly type styled component
+const OptionLabel: any = styled.label`
+  // Explicitly type styled component
   display: flex;
   padding: 16px;
   justify-content: space-between;
@@ -105,7 +109,8 @@ const OptionLabel: any = styled.label` // Explicitly type styled component
   line-height: normal;
 `;
 
-const SaveButton: any = styled.button` // Explicitly type styled component
+const SaveButton: any = styled.button`
+  // Explicitly type styled component
   cursor: pointer;
   display: flex;
   padding: 10px 16px;
@@ -130,20 +135,26 @@ export const ButtonMultiSelect = ({
   arrow = true,
   optionLabel = "Filter by tags",
   padding,
-}: ButtonMultiSelectProps) => { // Use ButtonMultiSelectProps
+}: ButtonMultiSelectProps) => {
+  // Use ButtonMultiSelectProps
   const [open, setOpen] = useState(false);
   const [localOptions, setLocalOptions] = useState<MultiSelectOption[]>([]); // Explicitly type useState
   const wrapperRef = useRef<HTMLDivElement>(null); // Explicitly type useRef
 
   useEffect(() => {
     setLocalOptions(
-      options.map((opt) => ({ ...opt, selected: opt.selected ?? false }))
+      options.map((opt) => ({ ...opt, selected: opt.selected ?? false })),
     );
   }, [options]);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => { // Explicitly type event
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) { // Cast event.target to Node
+    const handleClickOutside = (event: MouseEvent) => {
+      // Explicitly type event
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node)
+      ) {
+        // Cast event.target to Node
         setOpen(false);
       }
     };
@@ -154,15 +165,17 @@ export const ButtonMultiSelect = ({
     };
   }, []);
 
-  const toggleOption = (clickedOption: MultiSelectOption) => { // Explicitly type clickedOption
-    setLocalOptions((prev: MultiSelectOption[]) => // Explicitly type prev
+  const toggleOption = (clickedOption: MultiSelectOption) => {
+    // Explicitly type clickedOption
+    setLocalOptions((prev: MultiSelectOption[]) =>
+      // Explicitly type prev
       prev.map((option) => {
         if (option.id !== clickedOption.id) {
           if (!multiple) return { ...option, selected: false };
           return option;
         }
         return { ...option, selected: !option.selected };
-      })
+      }),
     );
   };
 
@@ -192,7 +205,8 @@ export const ButtonMultiSelect = ({
       {open && (
         <Dropdown>
           {optionLabel && <OptionLabel>{optionLabel}</OptionLabel>}
-          {localOptions.map((option: MultiSelectOption) => ( // Explicitly type option
+          {localOptions.map((option: MultiSelectOption) => (
+            // Explicitly type option
             <Option key={option?.id} onClick={() => toggleOption(option)}>
               {option.selected ? (
                 <CheckboxOutlineFilled

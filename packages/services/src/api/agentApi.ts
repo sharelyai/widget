@@ -1,6 +1,6 @@
 // Agent Chat API Utilities
 
-import { useGlobalStore } from '../stores/globalStore';
+import { useGlobalStore } from "../stores/globalStore";
 
 /**
  * Get the Agent API URL from config
@@ -46,7 +46,7 @@ export function getAgentHeaders(): HeadersInit {
  */
 export async function agentFetcher<T = unknown>(
   endpoint: string,
-  options?: RequestInit
+  options?: RequestInit,
 ): Promise<T> {
   const baseUrl = getAgentApiUrl();
   const url = `${baseUrl}${endpoint}`;
@@ -62,7 +62,7 @@ export async function agentFetcher<T = unknown>(
   if (!response.ok) {
     const errorBody = await response.text().catch(() => "");
     throw new Error(
-      `HTTP ${response.status}: ${response.statusText}${errorBody ? ` - ${errorBody}` : ""}`
+      `HTTP ${response.status}: ${response.statusText}${errorBody ? ` - ${errorBody}` : ""}`,
     );
   }
 
@@ -74,7 +74,7 @@ export async function agentFetcher<T = unknown>(
  */
 export async function agentFetcherRaw(
   endpoint: string,
-  options?: RequestInit
+  options?: RequestInit,
 ): Promise<Response> {
   const baseUrl = getAgentApiUrl();
   const url = `${baseUrl}${endpoint}`;
@@ -90,7 +90,7 @@ export async function agentFetcherRaw(
   if (!response.ok) {
     const errorBody = await response.text().catch(() => "");
     throw new Error(
-      `HTTP ${response.status}: ${response.statusText}${errorBody ? ` - ${errorBody}` : ""}`
+      `HTTP ${response.status}: ${response.statusText}${errorBody ? ` - ${errorBody}` : ""}`,
     );
   }
 

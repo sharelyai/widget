@@ -7,9 +7,7 @@ import {
 } from "../convertMessages";
 import type { AgentMessage } from "../../types/agent";
 
-function makeAgentMessage(
-  overrides: Partial<AgentMessage> = {},
-): AgentMessage {
+function makeAgentMessage(overrides: Partial<AgentMessage> = {}): AgentMessage {
   return {
     id: "msg-1",
     role: "assistant",
@@ -95,9 +93,7 @@ describe("agentMessagesToUIMessages", () => {
     ];
 
     const result = agentMessagesToUIMessages(messages);
-    const toolParts = result[0].parts.filter(
-      (p) => p.type === "dynamic-tool",
-    );
+    const toolParts = result[0].parts.filter((p) => p.type === "dynamic-tool");
     expect(toolParts).toHaveLength(1);
     expect((toolParts[0] as any).toolName).toBe("search");
     expect((toolParts[0] as any).state).toBe("output-available");
@@ -118,9 +114,7 @@ describe("agentMessagesToUIMessages", () => {
     ];
 
     const result = agentMessagesToUIMessages(messages);
-    const sourceParts = result[0].parts.filter(
-      (p) => p.type === "source-url",
-    );
+    const sourceParts = result[0].parts.filter((p) => p.type === "source-url");
     expect(sourceParts).toHaveLength(1);
     expect((sourceParts[0] as any).sourceId).toBe("s1");
   });

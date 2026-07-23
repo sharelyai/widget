@@ -179,12 +179,12 @@ export function ThinkingIndicator({
   const statusText = failed
     ? "Couldn't complete search"
     : isAllDone
-    ? sourceCount !== undefined
-      ? `Answered from ${sourceCount} sources`
-      : `Completed ${completedCount} steps`
-    : useToolCalls && lastTool
-    ? getToolSummary(lastTool) + (runningTool ? "..." : "")
-    : steps.find((s) => s.status === "running")?.title || "Processing...";
+      ? sourceCount !== undefined
+        ? `Answered from ${sourceCount} sources`
+        : `Completed ${completedCount} steps`
+      : useToolCalls && lastTool
+        ? getToolSummary(lastTool) + (runningTool ? "..." : "")
+        : steps.find((s) => s.status === "running")?.title || "Processing...";
 
   return (
     <div>
@@ -267,8 +267,8 @@ export function ThinkingIndicator({
                             color: isCompleted
                               ? "#344054"
                               : isError
-                              ? "#F04438"
-                              : "#667085",
+                                ? "#F04438"
+                                : "#667085",
                           }}
                         >
                           {getToolSummary(tc)}
@@ -368,8 +368,8 @@ export function ThinkingIndicator({
                           color: isCompleted
                             ? "#344054"
                             : isFailed
-                            ? "#F04438"
-                            : "#667085",
+                              ? "#F04438"
+                              : "#667085",
                         }}
                       >
                         {step.title}

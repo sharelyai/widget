@@ -316,9 +316,7 @@ describe("extractSourcesFromSemanticSearch", () => {
       },
     ]);
 
-    expect(source.metadata?.filename).toBe(
-      "Team-Onboarding-Guide-es.pdf",
-    );
+    expect(source.metadata?.filename).toBe("Team-Onboarding-Guide-es.pdf");
     expect(source.metadata?.pageNumber).toBe(7);
     expect(source.metadata?.knowledgeId).toBe("kb-123");
     // With a filename, the popover shows a PDF badge + Open Document button.
@@ -371,7 +369,8 @@ describe("processLoadedMessageSources enrichment from toolCalls", () => {
             id: "bb22bb22",
             type: "FILE",
             title: "The Orientation Guide",
-            content: "workspaces/w/knowledge/pdf/the-orientation-guide-x.pdf.pdf",
+            content:
+              "workspaces/w/knowledge/pdf/the-orientation-guide-x.pdf.pdf",
             filename: "The Orientation Guide.pdf",
             sourceUrl: null,
           },
@@ -449,9 +448,7 @@ describe("processLoadedMessageSources enrichment from toolCalls", () => {
       ],
     });
 
-    expect(source.metadata?.filename).toBe(
-      "Team-Handbook-course-470.txt",
-    );
+    expect(source.metadata?.filename).toBe("Team-Handbook-course-470.txt");
     expect(getSourceFileLabel(source)).toBe("TXT");
     // The redundant "Filename: … Title: …" marker leaves no real preview text.
     expect(source.snippet).toBeUndefined();

@@ -15,7 +15,7 @@ interface ThreadsResponse {
 }
 
 export function useAgentThreads(
-  options: UseAgentThreadsOptions
+  options: UseAgentThreadsOptions,
 ): UseAgentThreadsReturn {
   const { spaceId, autoFetch = true } = options;
   const workspaceId = useGlobalStore(
@@ -45,7 +45,7 @@ export function useAgentThreads(
 
     try {
       const data = await agentFetcher<ThreadsResponse>(
-        `${getBasePath()}/threads?spaceId=${spaceId}`
+        `${getBasePath()}/threads?spaceId=${spaceId}`,
       );
       setThreads(data.items || []);
     } catch (e) {
@@ -60,17 +60,20 @@ export function useAgentThreads(
       if (!workspaceId) {
         throw new Error("Workspace ID not available");
       }
-      const thread = await agentFetcher<AgentThread>(`${getBasePath()}/threads`, {
-        method: "POST",
-        body: JSON.stringify({
-          spaceId,
-          title,
-        }),
-      });
+      const thread = await agentFetcher<AgentThread>(
+        `${getBasePath()}/threads`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            spaceId,
+            title,
+          }),
+        },
+      );
       setThreads((prev) => [thread, ...prev]);
       return thread;
     },
-    [spaceId, workspaceId, getBasePath]
+    [spaceId, workspaceId, getBasePath],
   );
 
   const updateThread = useCallback(
@@ -83,22 +86,25 @@ export function useAgentThreads(
         {
           method: "PUT",
           body: JSON.stringify(data),
-        }
+        },
       );
       setThreads((prev) => prev.map((t) => (t.id === threadId ? updated : t)));
     },
-    [workspaceId, getBasePath]
+    [workspaceId, getBasePath],
   );
 
-  const deleteThread = useCallback(async (threadId: string) => {
-    if (!workspaceId) {
-      throw new Error("Workspace ID not available");
-    }
-    await agentFetcher(`${getBasePath()}/threads/${threadId}`, {
-      method: "DELETE",
-    });
-    setThreads((prev) => prev.filter((t) => t.id !== threadId));
-  }, [workspaceId, getBasePath]);
+  const deleteThread = useCallback(
+    async (threadId: string) => {
+      if (!workspaceId) {
+        throw new Error("Workspace ID not available");
+      }
+      await agentFetcher(`${getBasePath()}/threads/${threadId}`, {
+        method: "DELETE",
+      });
+      setThreads((prev) => prev.filter((t) => t.id !== threadId));
+    },
+    [workspaceId, getBasePath],
+  );
 
   const deleteAllThreads = useCallback(async () => {
     if (!workspaceId) {

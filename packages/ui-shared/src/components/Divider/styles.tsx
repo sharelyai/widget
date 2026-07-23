@@ -16,12 +16,14 @@ export const Wrapper: any = styled.div<IWrapperProps>`
     background-color: ${color ? theme.colors[color] : theme.colors.athensGray4};
     margin: ${margin || "0"};
 
-    ${type === "dot" &&
-    css`
-      border-radius: 50%;
-      width: 4px;
-      height: 4px;
-      background-color: ${color ? theme.colors[color] : theme.colors.silver};
-    `}
+    ${
+      type === "dot" &&
+      css`
+        border-radius: 50%;
+        width: 4px;
+        height: 4px;
+        background-color: ${color ? theme.colors[color] : theme.colors.silver};
+      `
+    }
   `}
 `;

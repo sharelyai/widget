@@ -17,7 +17,7 @@ export const BackgroundWrapper: any = styled.div`
 `;
 
 export const Wrapper: any = styled.div.withConfig({
-  shouldForwardProp: (prop) => !prop.startsWith('$'),
+  shouldForwardProp: (prop) => !prop.startsWith("$"),
 })<IProps>`
   ${({ theme, $isOpen, $left = 0, $bottom = 70 }) => css`
     display: ${$isOpen ? "block" : "none"};

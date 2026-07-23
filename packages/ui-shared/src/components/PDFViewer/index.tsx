@@ -59,13 +59,14 @@ export const PDFPreview: FC<PDFPreviewProps> = (props) => {
         <div className="pdf-header">
           <div className="pdf-controls">
             <div className="pdf-title">{fileName || "PDF Preview"}</div>
-            {numPages !== null && numPages > 1 && ( // Added null check
-              <div className="pdf-navigation-header">
-                <span>
-                  {pageNumber} / {numPages}
-                </span>
-              </div>
-            )}
+            {numPages !== null &&
+              numPages > 1 && ( // Added null check
+                <div className="pdf-navigation-header">
+                  <span>
+                    {pageNumber} / {numPages}
+                  </span>
+                </div>
+              )}
             <div className="action-buttons">
               <button className="control-button" onClick={handleDownload}>
                 <Download />

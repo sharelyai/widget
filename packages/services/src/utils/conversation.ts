@@ -11,7 +11,7 @@ const isAssistant = (m: ConversationMessage): boolean =>
 
 export const shouldTriggerAutoRename = (
   messages: ConversationMessage[] | undefined | null,
-  order: "asc" | "desc" = "asc"
+  order: "asc" | "desc" = "asc",
 ): boolean => {
   if (!messages || messages.length === 0) return false;
   const ordered = order === "desc" ? [...messages].reverse() : messages;

@@ -1,0 +1,10 @@
+node_modules
+**/dist
+**/.turbo
+coverage
+pnpm-lock.yaml
+
+# JSONC files (tsconfig*) — your VSCode formats these with the built-in JSON
+# language service, not Prettier ([jsonc] -> vscode.json-language-features).
+# Ignore them here so Prettier doesn't fight that formatting.
+**/tsconfig*.json

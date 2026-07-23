@@ -1,11 +1,13 @@
-export const classNames = (...args: (string | object | undefined | null | boolean)[]): string => {
+export const classNames = (
+  ...args: (string | object | undefined | null | boolean)[]
+): string => {
   const classes: string[] = [];
 
   args.forEach((arg) => {
     if (!arg) return;
-    if (typeof arg === 'string') {
+    if (typeof arg === "string") {
       classes.push(arg);
-    } else if (typeof arg === 'object') {
+    } else if (typeof arg === "object") {
       Object.keys(arg).forEach((key) => {
         if ((arg as any)[key]) {
           classes.push(key);
@@ -14,5 +16,5 @@ export const classNames = (...args: (string | object | undefined | null | boolea
     }
   });
 
-  return classes.join(' ');
+  return classes.join(" ");
 };

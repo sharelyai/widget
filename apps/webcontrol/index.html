@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -20,7 +20,7 @@
         "load",
         function () {
           const workspaceIdQueryParam = new URLSearchParams(
-            window.location.search
+            window.location.search,
           ).get("workspaceId");
           const baseConfig = {
             workspaceId: workspaceIdQueryParam,
@@ -28,7 +28,7 @@
           };
           window.sharelyai.initialize(baseConfig);
           window.sharelyai.render();
-        }
+        },
       );
     </script>
   </body>

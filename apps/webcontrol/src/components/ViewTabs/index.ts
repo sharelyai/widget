@@ -1,1 +1,1 @@
-export * from './ViewTabs';
+export * from "./ViewTabs";

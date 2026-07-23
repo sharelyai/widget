@@ -30,10 +30,16 @@ export const Dialog = (props: IDialog) => {
           <p className="modal-content-title">{title}</p>
           <p className="modal-content-description">{description}</p>
           <div className="modal-actions">
-            <button className="btn modal-action-button-cancel" onClick={onClose}>
+            <button
+              className="btn modal-action-button-cancel"
+              onClick={onClose}
+            >
               {buttonCancelText}
             </button>
-            <button className="btn modal-action-button-confirm" onClick={onConfirm}>
+            <button
+              className="btn modal-action-button-confirm"
+              onClick={onConfirm}
+            >
               {buttonConfirmText}
             </button>
           </div>

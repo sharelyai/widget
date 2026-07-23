@@ -80,7 +80,10 @@ export const replaceMessageValue = (props: IReplaceMessageValueProps) => {
       const anchorValues = label?.split(":");
       if (anchorValues.length === 3 && /^\d+$/.test(anchorValues[0])) {
         const pageNum = parseInt(anchorValues[0], 10);
-        const displayText = pageNum > 0 ? `${anchorValues[1]} P${anchorValues[0]}` : anchorValues[1];
+        const displayText =
+          pageNum > 0
+            ? `${anchorValues[1]} P${anchorValues[0]}`
+            : anchorValues[1];
         return `[${displayText}](${
           constants.PAGE_NUMBER_DOCUMENT_DOWNLOAD_URL
         }${label?.split(" ")?.join("____")})`;

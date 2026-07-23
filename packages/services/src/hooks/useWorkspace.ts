@@ -4,7 +4,11 @@ import { useSharelyContext } from "../provider";
 import { START_MODE_QUESTIONS } from "../constants";
 
 export const useWorkspace = () => {
-  const { config: storeConfig, setWorkspace, setCurrentInformation } = useGlobalStore();
+  const {
+    config: storeConfig,
+    setWorkspace,
+    setCurrentInformation,
+  } = useGlobalStore();
   const { apiClient } = useSharelyContext();
 
   const workspaceId = storeConfig?.workspaceId;

@@ -24,30 +24,32 @@ export const Wrapper = styled.div<IWrapperProps>`
     flex: 1;
     padding: 20px;
 
-    ${mode === constants.POSITION_PLACED_INLINE &&
-    hasMessages &&
-    css`
-      padding-bottom: 0;
-      position: relative;
-      overflow: visible !important;
-
-      .sharelyai-webcontroller-container-input {
-        position: -webkit-sticky;
-        position: sticky;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: ${theme.colors.white};
-        padding: 20px;
-        padding-top: 40px;
-        z-index: 20;
-      }
-
-      & .scrollbar-container {
-        padding-bottom: 120px;
+    ${
+      mode === constants.POSITION_PLACED_INLINE &&
+      hasMessages &&
+      css`
+        padding-bottom: 0;
+        position: relative;
         overflow: visible !important;
-      }
-    `}
+
+        .sharelyai-webcontroller-container-input {
+          position: -webkit-sticky;
+          position: sticky;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: ${theme.colors.white};
+          padding: 20px;
+          padding-top: 40px;
+          z-index: 20;
+        }
+
+        & .scrollbar-container {
+          padding-bottom: 120px;
+          overflow: visible !important;
+        }
+      `
+    }
 
     & .scrollbar-container {
       flex-grow: 1;

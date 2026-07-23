@@ -272,7 +272,9 @@ const Container: any = styled.div`
       gap: 8px;
       max-height: 0;
       overflow: hidden;
-      transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      transition:
+        max-height 0.3s ease-in-out,
+        opacity 0.3s ease-in-out;
       opacity: 0;
 
       &.show {

@@ -1,30 +1,40 @@
-import type { BaseClient } from './client';
-import type { Message } from '../types';
+import type { BaseClient } from "./client";
+import type { Message } from "../types";
 
 export function createSpacesApi(client: BaseClient) {
   return {
     getMessages: (spaceId: string, groupId: string, languageId?: string) => {
       const query = new URLSearchParams();
-      if (groupId) query.append('groupId', groupId);
-      if (languageId) query.append('languageId', languageId);
-      
-      return client.fetcher<{ messages: Message[] }>(`/spaces/${spaceId}/messages?${query.toString()}`);
+      if (groupId) query.append("groupId", groupId);
+      if (languageId) query.append("languageId", languageId);
+
+      return client.fetcher<{ messages: Message[] }>(
+        `/spaces/${spaceId}/messages?${query.toString()}`,
+      );
     },
 
     getGreeting: (spaceId: string, languageId?: string, saveMessage = true) => {
       const query = new URLSearchParams();
-      if (languageId) query.append('languageId', languageId);
-      if (saveMessage) query.append('saveMessage', 'true');
+      if (languageId) query.append("languageId", languageId);
+      if (saveMessage) query.append("saveMessage", "true");
 
-      return client.fetcher<{ greeting: { group: { id: string } } }>(`/spaces/${spaceId}/greeting?${query.toString()}`);
+      return client.fetcher<{ greeting: { group: { id: string } } }>(
+        `/spaces/${spaceId}/greeting?${query.toString()}`,
+      );
     },
 
-    sendMessage: (spaceId: string, content: string, groupId?: string, languageId?: string, signal?: AbortSignal) => {
+    sendMessage: (
+      spaceId: string,
+      content: string,
+      groupId?: string,
+      languageId?: string,
+      signal?: AbortSignal,
+    ) => {
       const query = new URLSearchParams();
-      if (languageId) query.append('languageId', languageId);
+      if (languageId) query.append("languageId", languageId);
 
       return client.request(`/spaces/${spaceId}/messages?${query.toString()}`, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify({
           newMessage: content,
           groupId,
@@ -34,15 +44,22 @@ export function createSpacesApi(client: BaseClient) {
     },
 
     updateGroup: (spaceId: string, groupId: string) => {
-      return client.fetcher<{ groupName: string }>(`/spaces/${spaceId}/groups/${groupId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ groupId }),
-      });
+      return client.fetcher<{ groupName: string }>(
+        `/spaces/${spaceId}/groups/${groupId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ groupId }),
+        },
+      );
     },
 
-    sendEvent: (spaceId: string, type: string, metadata?: Record<string, any>) => {
+    sendEvent: (
+      spaceId: string,
+      type: string,
+      metadata?: Record<string, any>,
+    ) => {
       return client.fetcher(`/spaces/${spaceId}/event`, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify({
           type,
           metadata,

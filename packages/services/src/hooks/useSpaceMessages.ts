@@ -35,8 +35,7 @@ export const useSpaceMessages = ({
     queryKey,
     queryFn: async (options) => {
       const prevData = options.client.getQueryData(queryKey) as
-        | { messages: Message[] }
-        | undefined;
+        { messages: Message[] } | undefined;
 
       if (!groupId) return prevData ?? { messages: [] };
 

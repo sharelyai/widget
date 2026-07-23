@@ -16,8 +16,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [
-    "@sharelyai/demo",
-    "@sharelyai/widget"
-  ]
+  "ignore": ["@sharelyai/demo", "@sharelyai/widget"]
 }

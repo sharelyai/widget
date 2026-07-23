@@ -1,1 +1,1 @@
-export * from './BrowsePanel';
+export * from "./BrowsePanel";

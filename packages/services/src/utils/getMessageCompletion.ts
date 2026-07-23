@@ -1,6 +1,6 @@
 export async function* getMessageCompletion(
   response: Response,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ) {
   const reader = response.body?.getReader();
   if (!reader) throw new Error("No reader");

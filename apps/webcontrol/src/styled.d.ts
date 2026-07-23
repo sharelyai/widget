@@ -1,10 +1,10 @@
-import 'styled-components';
+import "styled-components";
 
 // You might need to duplicate the Theme interface here if you can't import the type easily
 // or if you want to strictly decouple.
 // For now, I'll try to infer it or just declare the structure I need.
 
-declare module 'styled-components' {
+declare module "styled-components" {
   export interface DefaultTheme {
     colors: {
       white: string;

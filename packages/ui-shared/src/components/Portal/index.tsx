@@ -23,5 +23,7 @@ export const Portal = (props: IProps) => {
   }, [selector]);
 
   // Only render portal if mounted and ref.current is not null
-  return mounted && ref.current ? createPortal(<>{children}</>, ref.current) : null;
+  return mounted && ref.current
+    ? createPortal(<>{children}</>, ref.current)
+    : null;
 };

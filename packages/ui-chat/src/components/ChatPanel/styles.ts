@@ -1,4 +1,4 @@
-import styled, { css } from 'styled-components';
+import styled, { css } from "styled-components";
 
 export const Wrapper: any = styled.div`
   ${({ theme }) => css`
@@ -51,10 +51,7 @@ export const Wrapper: any = styled.div`
               --web-control-styles-main_color,
               ${theme.colors.indigo}
             );
-            color: var(
-              --web-control-styles-main_color,
-              ${theme.colors.indigo}
-            );
+            color: var(--web-control-styles-main_color, ${theme.colors.indigo});
           }
         }
       }
