@@ -6,6 +6,7 @@ import {
   getSourceFileLabel,
   resolveSourceUrl,
   isPdfSource,
+  withPdfPage,
 } from "@sharelyai/widget-services";
 import {
   ModalBackdrop,
@@ -111,7 +112,7 @@ export function SourcePreviewModal({
             {preview && <Row label="Preview" value={preview} multiline />}
             {externalUrl && (
               <a
-                href={externalUrl}
+                href={withPdfPage(externalUrl, pageNumber)}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}

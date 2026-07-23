@@ -13,6 +13,8 @@ import {
   regex,
   useGlobalStore,
   useSharelyContext,
+  getSourcePageNumber,
+  withPdfPage,
 } from "@sharelyai/widget-services";
 
 export const Wrapper: any = styled.div`
@@ -228,8 +230,8 @@ export const SearchPreview = (props: any) => {
     e.stopPropagation();
     if (downloadFile?.url) {
       const cleanUrl = downloadFile?.url?.replace(regex.GET_DOWNLOAD_WORD, "");
-
-      window.open(cleanUrl, "_blank");
+      const pageNumber = getSourcePageNumber(item as any);
+      window.open(withPdfPage(cleanUrl, pageNumber), "_blank");
     }
   };
 

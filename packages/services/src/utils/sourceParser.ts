@@ -170,6 +170,11 @@ export function getSourcePageNumber(
   return undefined;
 }
 
+export function withPdfPage(url: string, page?: number | null): string {
+  if (!url || !page || page <= 1 || url.includes("#")) return url;
+  return `${url}#page=${page}`;
+}
+
 /** Reads metadata.blobType (MIME type) when present. */
 export function getSourceBlobType(
   source: Source | undefined | null,

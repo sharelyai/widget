@@ -3,6 +3,7 @@ import { useSharelyContext } from "../provider";
 import { regex } from "../utils/regex";
 import { customEvents } from "../utils/customEvents";
 import { CUSTOM_EVENTS } from "../constants";
+import { getSourcePageNumber } from "../utils/sourceParser";
 import type { Source } from "../types/agent";
 
 export function useSourceDownload() {
@@ -26,7 +27,7 @@ export function useSourceDownload() {
       // Prefer metadata.knowledgeId which is the actual knowledge UUID.
       // source.id may be a vector/chunk ID that the download API won't accept.
       const knowledgeId = source.metadata?.knowledgeId;
-      const pageNumber = source.metadata?.pageNumber;
+      const pageNumber = getSourcePageNumber(source);
 
       // If no knowledgeId, try opening URL or skip
       if (!knowledgeId) {
