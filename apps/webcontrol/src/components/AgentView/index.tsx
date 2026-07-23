@@ -9,6 +9,8 @@ import {
   constants,
   classNames,
   agentMessageToBodyMessage,
+  useAgentThreads,
+  useAutoRenameThread,
 } from "@sharelyai/widget-services";
 import type {
   ThinkingStep,
@@ -134,6 +136,18 @@ export const AgentView = ({
   const agentChat = useSharelyChat({
     spaceId,
     initialThreadId: currentInformation?.agentThreadId,
+  });
+
+  const { threads, updateThread } = useAgentThreads({ spaceId });
+  const currentThread = agentChat.threadId
+    ? threads.find((thread) => thread.id === agentChat.threadId)
+    : null;
+
+  useAutoRenameThread({
+    threadId: agentChat.threadId ?? null,
+    messages: agentChat.messages,
+    updateThread,
+    currentTitle: currentThread?.title ?? null,
   });
 
   // Track previous thread ID to detect changes

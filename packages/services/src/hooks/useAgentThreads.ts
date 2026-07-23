@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import type { AgentThread, UseAgentThreadsReturn } from "../types/agent";
 import { agentFetcher } from "../api/agentApi";
 import { useGlobalStore } from "../stores/globalStore";
+import { customEvents } from "../utils/customEvents";
+import { CUSTOM_EVENTS } from "../constants";
 
 interface UseAgentThreadsOptions {
   spaceId: string;
@@ -89,6 +91,7 @@ export function useAgentThreads(
         },
       );
       setThreads((prev) => prev.map((t) => (t.id === threadId ? updated : t)));
+      customEvents.publish(CUSTOM_EVENTS.THREADS_UPDATED, { threadId });
     },
     [workspaceId, getBasePath],
   );
@@ -124,6 +127,14 @@ export function useAgentThreads(
     if (autoFetch) {
       fetchThreads();
     }
+  }, [autoFetch, fetchThreads]);
+
+  useEffect(() => {
+    if (!autoFetch) return;
+    const handler = () => fetchThreads();
+    customEvents.subscribe(CUSTOM_EVENTS.THREADS_UPDATED, handler);
+    return () =>
+      customEvents.unsubscribe(CUSTOM_EVENTS.THREADS_UPDATED, handler);
   }, [autoFetch, fetchThreads]);
 
   return {
