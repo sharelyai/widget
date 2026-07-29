@@ -105,20 +105,21 @@ For deeper local-dev and fork-deployment guidance, see [`CONTRIBUTING.md`](./CON
 
 ## Commands
 
-| Command        | Description                                                   |
-| -------------- | ------------------------------------------------------------- |
-| `pnpm install` | Install all workspace dependencies                            |
-| `pnpm dev`     | Start dev mode for all packages (Turbo, persistent, uncached) |
-| `pnpm build`   | Build all packages in dependency order (`^build`)             |
-| `pnpm lint`    | Lint all packages                                             |
-| `pnpm test`    | Run tests (vitest) across packages                            |
-| `pnpm clean`   | Remove all `dist/` and `node_modules/`                        |
+| Command           | Description                                                              |
+| ----------------- | ------------------------------------------------------------------------ |
+| `pnpm install`    | Install all workspace dependencies                                       |
+| `pnpm playground` | Start the playground / demo app on `localhost:3000` (alias: `pnpm demo`) |
+| `pnpm dev`        | Start dev mode for all packages (Turbo, persistent, uncached)            |
+| `pnpm build`      | Build all packages in dependency order (`^build`)                        |
+| `pnpm lint`       | Lint all packages                                                        |
+| `pnpm test`       | Run tests (vitest) across packages                                       |
+| `pnpm clean`      | Remove all `dist/` and `node_modules/`                                   |
 
 Filter to a specific package or example:
 
 ```bash
 pnpm --filter @sharelyai/widget-services build      # one package
-pnpm --filter @sharelyai/demo dev            # the demo app
+pnpm --filter @sharelyai/demo dev                   # the demo app (= pnpm playground)
 pnpm --filter @sharelyai/widget-ui-shared... build  # a package + everything that depends on it
 ```
 
@@ -203,6 +204,8 @@ agent views. It accepts (all props optional):
 | `workspaceId`       | `string`                 | Workspace identifier                                                           |
 | `baseUrl`           | `string`                 | API base URL (falls back to the default API)                                   |
 | `externalUserId`    | `string`                 | External user identifier (only asserted alongside a host token)                |
+| `externalToken`     | `string`                 | Host-asserted user JWT — carries the RBAC role, mint it server-side            |
+| `spaceId`           | `string`                 | Private space belonging to the `externalToken` user                            |
 | `lang`              | `string`                 | Language code (also sets `langKnowledge`)                                      |
 | `theme`             | `object`                 | Partial theme override passed to `ThemeProvider`                               |
 | `displayMode`       | `DisplayModeConfig`      | Display configuration (width, height, z-index, open-by-default, private mode)  |
@@ -248,7 +251,7 @@ minimal implementation snippet and a link to the live demo route that runs it.
 
 Every feature package needs the same two wraps — `SharelyProvider` (from services)
 then `ThemeProvider` (from ui-shared) — around its panel. The runnable code lives in
-the [demo app](#demo-app); start it with `pnpm --filter @sharelyai/demo dev` and open
+the [demo app](#demo-app); start it with `pnpm playground` and open
 the route. See [`examples/README.md`](./examples/README.md) for the full index.
 
 ## Demo app
@@ -258,13 +261,32 @@ packages together. It's for local exploration and understanding the API surface
 before embedding — not a deploy target.
 
 ```bash
-pnpm --filter @sharelyai/demo dev   # http://localhost:3000
+npm run playground   # http://localhost:3000 (alias: npm run demo)
 ```
 
 The app is a single shell: a persistent **sidebar** swaps each demo into the main
 area. The landing page (`/`) is an interactive **playground** — configure the widget
 with live form controls (workspace/base URL, mode, views, theme, language, sizing, …),
 preview it in place, and copy the generated config / `<script>` embed / React snippet.
+
+### Trying roles (RBAC) in the playground
+
+The playground's **Identity & roles** card takes a workspace API key, lists the
+workspace's roles, and starts a session as the role you pick — so you can see
+what each role actually retrieves. Behind it is the flow a real embed runs on its
+server (the playground's `Role token (server)` snippet is the copyable version):
+
+1. `POST /workspaces/:id/generate-access-key-token` with `x-api-key` and a
+   `roleId` (or your own `customerRoleId`) → an access-key token carrying the role
+2. `PUT /workspaces/:id/activate-or-retrieve-user-space` with that token →
+   `{ token, spaceId }`, idempotent per `customerIdString`
+3. Hand the widget `externalToken` + `spaceId`
+
+The playground runs those calls in the browser so switching roles is instant; the
+key lives in `sessionStorage` and never enters the saved config. **A production
+embed must keep the API key server-side** and ship only the minted token. Picking
+_Anonymous_ asserts no identity — on an RBAC-enabled workspace the widget answers
+with its own no-access screen, which is what an unidentified visitor sees.
 
 Routes (all reachable from the sidebar):
 

@@ -20,8 +20,8 @@ pnpm install
 cp .env.example .env
 # Edit .env with your API URL and workspace ID
 
-# Start the demo app (recommended starting point)
-pnpm dev
+# Start the playground / demo app (recommended starting point)
+pnpm playground
 ```
 
 The demo runs on `http://localhost:3000` and exposes every integration mode under different routes.
@@ -29,7 +29,7 @@ The demo runs on `http://localhost:3000` and exposes every integration mode unde
 ### Useful filtered commands
 
 ```bash
-# Run only the demo app
+# Run only the demo app (same as pnpm playground)
 pnpm --filter @sharelyai/demo dev
 
 # Run the widget shell app (single-file embeddable build)

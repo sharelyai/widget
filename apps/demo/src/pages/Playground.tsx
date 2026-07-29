@@ -8,6 +8,14 @@ import React, {
 } from "react";
 import { defaultTheme } from "@sharelyai/widget-ui-shared";
 import { WebControl } from "@sharelyai/widget";
+import {
+  createHostSession,
+  fetchWorkspaceMeta,
+  listRoles,
+  type HostSession,
+  type WorkspaceMeta,
+  type WorkspaceRole,
+} from "../lib/rbacSession";
 
 // ---------------------------------------------------------------------------
 // Env
@@ -267,6 +275,170 @@ function useDebouncedState(initial: State, delay = 400) {
 }
 
 // ---------------------------------------------------------------------------
+// RBAC — experience the widget as one of the workspace's roles
+// ---------------------------------------------------------------------------
+const API_KEY_STORAGE_KEY = "sharely-playground-api-key";
+
+type RbacStatus = "idle" | "loading-roles" | "starting" | "ready";
+
+/**
+ * Drives the host-asserted session: an API key buys the role list, picking a
+ * role mints a token bound to it. Deliberately kept out of the saved config —
+ * the key lives in sessionStorage, so it dies with the tab.
+ */
+function useRbacSession(workspaceId: string, baseUrl: string) {
+  const [apiKey, setApiKeyState] = useState(
+    () => sessionStorage.getItem(API_KEY_STORAGE_KEY) ?? "",
+  );
+  const [meta, setMeta] = useState<WorkspaceMeta | null>(null);
+  const [roles, setRoles] = useState<WorkspaceRole[]>([]);
+  const [roleId, setRoleId] = useState("");
+  const [session, setSession] = useState<HostSession | null>(null);
+  const [status, setStatus] = useState<RbacStatus>("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  // Which role is live, and which key we already tried — kept in refs so the
+  // callbacks below don't churn on every keystroke.
+  const roleIdRef = useRef("");
+  roleIdRef.current = roleId;
+  const attempted = useRef<string | null>(null);
+
+  const setApiKey = useCallback((value: string) => {
+    setApiKeyState(value);
+    // Clearing the key drops the identity it bought, and lets the same key be
+    // retried later instead of being remembered as already-attempted.
+    if (!value) {
+      attempted.current = null;
+      setRoles([]);
+      setRoleId("");
+      setSession(null);
+      setStatus("idle");
+      setError(null);
+    }
+    try {
+      if (value) sessionStorage.setItem(API_KEY_STORAGE_KEY, value);
+      else sessionStorage.removeItem(API_KEY_STORAGE_KEY);
+    } catch {
+      /* private mode — the key just won't survive a reload */
+    }
+  }, []);
+
+  // A different workspace (or API host) means different roles and a different
+  // identity — drop everything rather than showing a stale role as active.
+  useEffect(() => {
+    setMeta(null);
+    setRoles([]);
+    setRoleId("");
+    setSession(null);
+    setStatus("idle");
+    setError(null);
+  }, [workspaceId, baseUrl]);
+
+  const startSession = useCallback(
+    async (role: WorkspaceRole, workspaceMeta: WorkspaceMeta) => {
+      setStatus("starting");
+      try {
+        const next = await createHostSession({
+          baseUrl,
+          workspaceId,
+          apiKey,
+          role,
+          organizationId: workspaceMeta.organizationId,
+        });
+        setSession(next);
+        setStatus("ready");
+      } catch (e) {
+        setSession(null);
+        setRoleId("");
+        setStatus("idle");
+        setError(e instanceof Error ? e.message : "Couldn't start the session");
+      }
+    },
+    [apiKey, baseUrl, workspaceId],
+  );
+
+  const loadRoles = useCallback(async () => {
+    if (!workspaceId || !apiKey) return;
+    setStatus("loading-roles");
+    setError(null);
+    try {
+      const workspaceMeta = await fetchWorkspaceMeta(baseUrl, workspaceId);
+      const list = await listRoles(baseUrl, workspaceId, apiKey, workspaceMeta);
+      setMeta(workspaceMeta);
+      setRoles(list);
+      if (!list.length) {
+        setStatus("idle");
+        setError("This workspace has no roles yet");
+        return;
+      }
+      // Land on a role straight away — an empty dropdown next to a valid key
+      // is a dead end, and the whole point is seeing the widget as someone.
+      // A selection that survived the reload wins over picking the first.
+      const keep = list.find((r) => r.id === roleIdRef.current);
+      const role = keep ?? list[0];
+      setRoleId(role.id);
+      await startSession(role, workspaceMeta);
+    } catch (e) {
+      setRoles([]);
+      setSession(null);
+      setStatus("idle");
+      setError(e instanceof Error ? e.message : "Couldn't load roles");
+    }
+  }, [apiKey, baseUrl, startSession, workspaceId]);
+
+  // Auto-load once a key is present — typed, pasted, or restored from the last
+  // reload. Debounced so a key being typed doesn't fire a request per keystroke,
+  // and attempted once per key/workspace so a rejected key doesn't retry itself.
+  useEffect(() => {
+    if (!workspaceId || !apiKey) return;
+    const attempt = `${workspaceId}|${baseUrl}|${apiKey}`;
+    if (attempted.current === attempt) return;
+    const timer = setTimeout(() => {
+      attempted.current = attempt;
+      void loadRoles();
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [apiKey, baseUrl, loadRoles, workspaceId]);
+
+  const selectRole = useCallback(
+    async (nextRoleId: string) => {
+      setRoleId(nextRoleId);
+      setError(null);
+
+      // Back to anonymous: no host-asserted identity at all. On an RBAC
+      // workspace the widget answers that with its own blocked screen, which
+      // is exactly what an unidentified visitor would see.
+      if (!nextRoleId) {
+        setSession(null);
+        setStatus("idle");
+        return;
+      }
+
+      const role = roles.find((r) => r.id === nextRoleId);
+      if (!role || !meta) return;
+      await startSession(role, meta);
+    },
+    [meta, roles, startSession],
+  );
+
+  return {
+    apiKey,
+    setApiKey,
+    roles,
+    roleId,
+    session,
+    status,
+    error,
+    rbacEnabled: meta?.rbacEnabled ?? false,
+    hasLoadedRoles: roles.length > 0,
+    loadRoles,
+    selectRole,
+  };
+}
+
+type RbacSession = ReturnType<typeof useRbacSession>;
+
+// ---------------------------------------------------------------------------
 // UI primitives — all text min 14px
 // ---------------------------------------------------------------------------
 const transitionSmooth =
@@ -295,18 +467,21 @@ function Input({
   value,
   onChange,
   placeholder,
+  type,
   style: extra,
 }: {
   id: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
+  type?: string;
   style?: React.CSSProperties;
 }) {
   const [f, setF] = useState(false);
   return (
     <input
       id={id}
+      type={type}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
@@ -756,6 +931,22 @@ const CategoryIcons = {
       <line x1="9" x2="9" y1="21" y2="9" />
     </svg>
   ),
+  identity: (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={18}
+      height={18}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
+  ),
 };
 
 type CategoryIconName = keyof typeof CategoryIcons;
@@ -901,6 +1092,98 @@ function Section({
       </button>
       {open && <div style={{ paddingBottom: 16 }}>{children}</div>}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Identity & roles (RBAC)
+// ---------------------------------------------------------------------------
+function IdentityCard({
+  rbac,
+  workspaceId,
+  fid,
+}: {
+  rbac: RbacSession;
+  workspaceId: string;
+  fid: (name: string) => string;
+}) {
+  const busy = rbac.status === "loading-roles" || rbac.status === "starting";
+  const canLoad = Boolean(workspaceId && rbac.apiKey) && !busy;
+
+  const note = (() => {
+    if (rbac.status === "loading-roles") return "Loading roles…";
+    if (rbac.status === "starting") return "Starting a session for that role…";
+    if (rbac.error) return rbac.error;
+    if (rbac.session)
+      return `Running as ${rbac.session.roleName} · space ${rbac.session.spaceId.slice(0, 8)}…`;
+    if (rbac.hasLoadedRoles && rbac.rbacEnabled)
+      return "Anonymous — RBAC is on, so the widget will ask for a role";
+    if (rbac.hasLoadedRoles) return "Anonymous — no role asserted";
+    if (rbac.apiKey) return "Checking the key…";
+    return null;
+  })();
+
+  const noteColor = rbac.error ? T.error : rbac.session ? T.success : T.muted;
+
+  return (
+    <SettingsCard title="Identity & roles" icon="identity" defaultOpen>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <PropRow label="API key">
+          <Input
+            id={fid("api-key")}
+            type="password"
+            value={rbac.apiKey}
+            onChange={rbac.setApiKey}
+            placeholder="workspace API key"
+          />
+        </PropRow>
+
+        <button
+          onClick={() => void rbac.loadRoles()}
+          disabled={!canLoad}
+          style={{
+            padding: "9px 12px",
+            fontSize: 14,
+            fontWeight: 600,
+            color: canLoad ? T.primary : T.muted,
+            background: canLoad ? T.primaryBg : T.gray50,
+            border: `1px solid ${canLoad ? T.primaryBorder : T.border}`,
+            borderRadius: 8,
+            cursor: canLoad ? "pointer" : "not-allowed",
+            transition: transitionSmooth,
+          }}
+        >
+          {rbac.hasLoadedRoles ? "Reload roles" : "Load roles"}
+        </button>
+
+        {rbac.hasLoadedRoles && (
+          <PropRow label="Role">
+            <Select
+              id={fid("role")}
+              value={rbac.roleId}
+              onChange={(v) => void rbac.selectRole(v)}
+              options={[
+                { value: "", label: "Anonymous (no role)" },
+                ...rbac.roles.map((r) => ({ value: r.id, label: r.name })),
+              ]}
+            />
+          </PropRow>
+        )}
+
+        {note && (
+          <div style={{ fontSize: 13, color: noteColor, lineHeight: 1.5 }}>
+            {note}
+          </div>
+        )}
+
+        <div style={{ fontSize: 13, color: T.muted, lineHeight: 1.5 }}>
+          Add a key and the workspace's roles load on their own, starting with
+          the first — each mints a token bound to that role, so retrieval is
+          filtered to what it can see. The key stays in this tab; in production
+          mint the token on your server and ship only that to the page.
+        </div>
+      </div>
+    </SettingsCard>
   );
 }
 
@@ -1307,6 +1590,7 @@ export default function Playground() {
   } = useDebouncedState(loadStored() ?? DEFAULTS);
   const [showCode, setShowCode] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const rbac = useRbacSession(applied.workspaceId, applied.baseUrl);
   const lastFloatingMode = useRef(
     s.mode !== "placed-inline" ? s.mode : "top-center-floating",
   );
@@ -1440,6 +1724,9 @@ export default function Playground() {
     height: applied.height,
     zIndex: applied.zIndex,
     lang: applied.lang,
+    // Remount on a role switch so the widget re-reads the identity from the
+    // store instead of keeping the previous role's chat on screen.
+    session: rbac.session?.externalToken ?? null,
   });
 
   const exportConfig = useMemo(() => {
@@ -1471,11 +1758,22 @@ export default function Playground() {
     applied.themePrimary !== defaultTheme.colors.primary ||
     applied.themeSecondary !== defaultTheme.colors.secondary;
 
+  // A role is asserted by handing the widget a token your server minted for
+  // it — so the snippets only mention it once a role is actually selected.
+  const withRole = Boolean(rbac.session);
+
+  const embedConfigJson = withRole
+    ? configJson.replace(
+        /\n\}$/,
+        `,\n  // minted server-side for the "${rbac.session?.roleName}" role\n  "externalToken": EXTERNAL_TOKEN,\n  "spaceId": SPACE_ID\n}`,
+      )
+    : configJson;
+
   const embedSnippet = `<div id="sharelyai-webcontroller-id"></div>
 
 <script src="https://your-deployment.example.com/assets/sharelyai.js"></script>
 <script>
-  window.sharelyai.initialize(${indent(configJson, 2)});
+  window.sharelyai.initialize(${indent(embedConfigJson, 2)});
   window.sharelyai.render();
 </script>`;
 
@@ -1485,6 +1783,10 @@ export default function Playground() {
   avatarmodeMobile="${applied.avatar}"
   lang="${applied.lang}"${applied.justChat ? "\n  justChat" : ""}${
     applied.closedText ? `\n  closedText="${applied.closedText}"` : ""
+  }${
+    withRole
+      ? `\n  externalToken={externalToken} /* "${rbac.session?.roleName}" role */\n  spaceId={spaceId}`
+      : ""
   }
   displayMode={${indent(JSON.stringify(displayMode, null, 2), 2)}}${
     themeChanged
@@ -1492,6 +1794,46 @@ export default function Playground() {
       : ""
   }
 />`;
+
+  // The playground runs this in the browser so you can switch roles quickly.
+  // Real embeds run it on the server — the API key must never reach the page.
+  const serverSnippet = `// Server-side. Never expose the workspace API key to the browser.
+const BASE = "${applied.baseUrl || ENV_BASE_URL}";
+const WORKSPACE_ID = "${applied.workspaceId || "YOUR_WORKSPACE_ID"}";
+
+// 1. An access-key token bound to the role the visitor has in your app.
+const akRes = await fetch(
+  \`\${BASE}/workspaces/\${WORKSPACE_ID}/generate-access-key-token\`,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": API_KEY },
+    // roleId = a Sharely role id; use { customerRoleId } to key off your own ids
+    body: JSON.stringify({ roleId: ${
+      withRole ? `"${rbac.session?.roleId}"` : "ROLE_ID"
+    } }),
+  },
+);
+const { token: akToken } = await akRes.json();
+
+// 2. Exchange it for the visitor's user JWT + private space. Idempotent per
+//    customerIdString, so the same visitor keeps the same space and history.
+const spaceRes = await fetch(
+  \`\${BASE}/workspaces/\${WORKSPACE_ID}/activate-or-retrieve-user-space\`,
+  {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: \`Bearer \${akToken}\`,
+      organizationid: ORGANIZATION_ID,
+    },
+    body: JSON.stringify({ customerIdString: YOUR_USER_ID }),
+  },
+);
+const { token: externalToken, spaceId } = await spaceRes.json();
+
+// 3. Ship externalToken + spaceId to the page — that is the whole identity.
+//    On an RBAC workspace a token without a role is refused, and the widget
+//    shows its "no access" screen instead of answering.`;
 
   return (
     <div
@@ -1521,6 +1863,8 @@ export default function Playground() {
               key={previewKey}
               workspaceId={applied.workspaceId || undefined}
               baseUrl={applied.baseUrl || undefined}
+              externalToken={rbac.session?.externalToken}
+              spaceId={rbac.session?.spaceId}
               mode={applied.mode}
               avatarmodeDesktop={applied.avatar}
               avatarmodeMobile={applied.avatar}
@@ -1536,6 +1880,8 @@ export default function Playground() {
             key={previewKey}
             workspaceId={applied.workspaceId || undefined}
             baseUrl={applied.baseUrl || undefined}
+            externalToken={rbac.session?.externalToken}
+            spaceId={rbac.session?.spaceId}
             mode={applied.mode}
             avatarmodeDesktop={applied.avatar}
             avatarmodeMobile={applied.avatar}
@@ -1760,6 +2106,15 @@ export default function Playground() {
               </div>
             </SettingsCard>
 
+            {/* ── Identity & roles card — sits with Connection: both are about
+                who the widget talks to and as whom. Expanded by default so the
+                API key field is right there once Advanced is open. ── */}
+            <IdentityCard
+              rbac={rbac}
+              workspaceId={applied.workspaceId}
+              fid={fid}
+            />
+
             {/* ── Layout card ── */}
             <SettingsCard title="Layout" icon="layout" defaultOpen={false}>
               <div
@@ -1869,6 +2224,7 @@ export default function Playground() {
             { id: "config", label: "Config (JSON)", code: configJson },
             { id: "embed", label: "Embed <script>", code: embedSnippet },
             { id: "react", label: "React component", code: reactSnippet },
+            { id: "server", label: "Role token (server)", code: serverSnippet },
           ]}
         />
       )}

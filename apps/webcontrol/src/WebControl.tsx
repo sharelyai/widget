@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { SHARELY_VERSION } from "./version";
 import {
   SharelyProvider,
@@ -40,6 +40,14 @@ export interface WebControlProps {
   workspaceId?: string;
   baseUrl?: string;
   externalUserId?: string;
+  /**
+   * Host-asserted user JWT (the `token` from activate-or-retrieve-user-space).
+   * Mint it on your server — it carries the RBAC role in its metadata, so
+   * retrieval is filtered to what that role can see. Pair with `spaceId`.
+   */
+  externalToken?: string;
+  /** Private space that belongs to the `externalToken` user. */
+  spaceId?: string;
   lang?: string;
   defaultView?: string;
   theme?: any;
@@ -57,6 +65,51 @@ export interface WebControlProps {
 const hasRbacRole = (userData: any): boolean => {
   const metadata = userData?.user_metadata;
   return Boolean(metadata?.roleId || metadata?.customerRoleId);
+};
+
+/**
+ * Last host-asserted session written to the store, module-scoped so that
+ * remounting <WebControl> (a new React key) still knows what the previous
+ * mount applied — switching roles, or dropping back to anonymous, has to
+ * clear the identity the last session left behind.
+ */
+let appliedHostSession: string | null = null;
+
+const syncHostSession = (externalToken?: string, spaceId?: string) => {
+  const key = `${externalToken ?? ""}|${spaceId ?? ""}`;
+  if (appliedHostSession === key) return;
+  const isFirstMount = appliedHostSession === null;
+  appliedHostSession = key;
+
+  if (externalToken) {
+    // Same contract as the embed API's initialize(): the host asserts who the
+    // user is, so the widget skips anonymous space creation entirely.
+    useGlobalStore.setState((state) => ({
+      ...state,
+      externalToken,
+      token: externalToken,
+      userData: undefined,
+      sessionInvalid: false,
+      ...(spaceId
+        ? { currentInformation: { ...state.currentInformation, spaceId } }
+        : {}),
+    }));
+    return;
+  }
+
+  // No session on the very first mount means the host never used one — leave
+  // the persisted anonymous token alone so resume keeps working. Afterwards it
+  // means the host dropped a session, so wipe the identity it left behind.
+  if (isFirstMount) return;
+  useGlobalStore.setState((state) => ({
+    ...state,
+    externalToken: undefined,
+    token: undefined,
+    temporalToken: undefined,
+    userData: undefined,
+    currentInformation: undefined,
+    sessionInvalid: false,
+  }));
 };
 
 export const WebControl = (props: WebControlProps) => {
@@ -91,11 +144,27 @@ export const WebControl = (props: WebControlProps) => {
     propConfig.avatarmodeMobile = props.avatarmodeMobile;
   if (props.onError !== undefined) propConfig.onError = props.onError;
 
+  // The host session has to land in the store *before* the inner tree boots —
+  // useAuth decodes the token and initializeSpace decides whether to create an
+  // anonymous space on mount. Hold the tree back for the frame it takes.
+  const sessionKey = `${props.externalToken ?? ""}|${props.spaceId ?? ""}`;
+  const [syncedSession, setSyncedSession] = useState<string | null>(() =>
+    appliedHostSession === null && !props.externalToken && !props.spaceId
+      ? sessionKey // nothing to apply and nothing to clear — no gate needed
+      : null,
+  );
+
+  useLayoutEffect(() => {
+    if (syncedSession === sessionKey) return;
+    syncHostSession(props.externalToken, props.spaceId);
+    setSyncedSession(sessionKey);
+  }, [sessionKey, syncedSession, props.externalToken, props.spaceId]);
+
   return (
     <SharelyProvider config={propConfig}>
       <ThemeProvider theme={props.theme}>
         <GlobalStyle />
-        <WebControlInner {...props} />
+        {syncedSession === sessionKey && <WebControlInner {...props} />}
       </ThemeProvider>
     </SharelyProvider>
   );
