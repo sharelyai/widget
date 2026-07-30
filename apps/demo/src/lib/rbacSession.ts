@@ -42,9 +42,25 @@ export interface WorkspaceMeta {
 export type IdentityMode = "customerIdString" | "userId";
 
 export interface Identity {
-  mode: IdentityMode;
+  /** Defaults to `customerIdString` — the mode any embedder can use. */
+  mode?: IdentityMode;
   /** Empty means "per-role playground identity" — see `identityBody`. */
   value: string;
+}
+
+/**
+ * A random, stable identifier for the playground's test user. Any string works
+ * as a `customerIdString`; a UUID just avoids colliding with a real user key.
+ */
+export function generateIdentityId(): string {
+  // randomUUID needs a secure context — absent when the playground is opened
+  // over plain http on a LAN address (phone testing), so fall back by hand.
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  const b = globalThis.crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const hex = [...b].map((n) => n.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 export interface HostSession {

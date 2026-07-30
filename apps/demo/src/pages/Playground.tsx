@@ -11,6 +11,7 @@ import { WebControl } from "@sharelyai/widget";
 import {
   createHostSession,
   fetchWorkspaceMeta,
+  generateIdentityId,
   listRoles,
   type HostSession,
   type WorkspaceMeta,
@@ -278,6 +279,21 @@ function useDebouncedState(initial: State, delay = 400) {
 // RBAC — experience the widget as one of the workspace's roles
 // ---------------------------------------------------------------------------
 const API_KEY_STORAGE_KEY = "sharely-playground-api-key";
+// Not secret — and worth keeping across sessions, since the identifier is what
+// makes the test user's space (and its chat history) the same one tomorrow.
+const IDENTITY_STORAGE_KEY = "sharely-playground-identity";
+
+function loadIdentityId(): string {
+  try {
+    const stored = localStorage.getItem(IDENTITY_STORAGE_KEY);
+    if (stored) return stored;
+    const fresh = generateIdentityId();
+    localStorage.setItem(IDENTITY_STORAGE_KEY, fresh);
+    return fresh;
+  } catch {
+    return generateIdentityId();
+  }
+}
 
 type RbacStatus = "idle" | "loading-roles" | "starting" | "ready";
 
@@ -296,11 +312,16 @@ function useRbacSession(workspaceId: string, baseUrl: string) {
   const [session, setSession] = useState<HostSession | null>(null);
   const [status, setStatus] = useState<RbacStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  // Who the session is for — sent as `customerIdString`, so any string works.
+  // Seeded with a generated UUID so there is always a stable test user.
+  const [identityId, setIdentityIdState] = useState<string>(loadIdentityId);
 
-  // Which role is live, and which key we already tried — kept in refs so the
-  // callbacks below don't churn on every keystroke.
+  // Which role and identity are live, and which key we already tried — kept in
+  // refs so the callbacks below don't churn on every keystroke.
   const roleIdRef = useRef("");
   roleIdRef.current = roleId;
+  const identityRef = useRef(identityId);
+  identityRef.current = identityId;
   const attempted = useRef<string | null>(null);
 
   const setApiKey = useCallback((value: string) => {
@@ -344,6 +365,7 @@ function useRbacSession(workspaceId: string, baseUrl: string) {
           apiKey,
           role,
           organizationId: workspaceMeta.organizationId,
+          identity: { value: identityRef.current },
         });
         setSession(next);
         setStatus("ready");
@@ -421,6 +443,36 @@ function useRbacSession(workspaceId: string, baseUrl: string) {
     [meta, roles, startSession],
   );
 
+  const setIdentityId = useCallback((next: string) => {
+    setIdentityIdState(next);
+    setError(null);
+    try {
+      localStorage.setItem(IDENTITY_STORAGE_KEY, next);
+    } catch {
+      /* private mode — the identity just won't survive a reload */
+    }
+  }, []);
+
+  // Changing who the session is for re-mints it for the live role. Debounced,
+  // because the id is typed; skipped while nothing is running yet, since
+  // loadRoles/selectRole already read the current identity when they start.
+  const appliedIdentity = useRef(identityId.trim());
+  useEffect(() => {
+    const key = identityId.trim();
+    if (appliedIdentity.current === key) return;
+    if (!roleId || !meta) {
+      appliedIdentity.current = key;
+      return;
+    }
+    const role = roles.find((r) => r.id === roleId);
+    if (!role) return;
+    const timer = setTimeout(() => {
+      appliedIdentity.current = key;
+      void startSession(role, meta);
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [identityId, meta, roleId, roles, startSession]);
+
   return {
     apiKey,
     setApiKey,
@@ -429,6 +481,8 @@ function useRbacSession(workspaceId: string, baseUrl: string) {
     session,
     status,
     error,
+    identityId,
+    setIdentityId,
     rbacEnabled: meta?.rbacEnabled ?? false,
     hasLoadedRoles: roles.length > 0,
     loadRoles,
@@ -1115,7 +1169,7 @@ function IdentityCard({
     if (rbac.status === "starting") return "Starting a session for that role…";
     if (rbac.error) return rbac.error;
     if (rbac.session)
-      return `Running as ${rbac.session.roleName} · space ${rbac.session.spaceId.slice(0, 8)}…`;
+      return `Running as ${rbac.session.roleName} · user ${rbac.session.identityLabel.slice(0, 8)}… · space ${rbac.session.spaceId.slice(0, 8)}…`;
     if (rbac.hasLoadedRoles && rbac.rbacEnabled)
       return "Anonymous — RBAC is on, so the widget will ask for a role";
     if (rbac.hasLoadedRoles) return "Anonymous — no role asserted";
@@ -1157,17 +1211,28 @@ function IdentityCard({
         </button>
 
         {rbac.hasLoadedRoles && (
-          <PropRow label="Role">
-            <Select
-              id={fid("role")}
-              value={rbac.roleId}
-              onChange={(v) => void rbac.selectRole(v)}
-              options={[
-                { value: "", label: "Anonymous (no role)" },
-                ...rbac.roles.map((r) => ({ value: r.id, label: r.name })),
-              ]}
-            />
-          </PropRow>
+          <>
+            <PropRow label="Role">
+              <Select
+                id={fid("role")}
+                value={rbac.roleId}
+                onChange={(v) => void rbac.selectRole(v)}
+                options={[
+                  { value: "", label: "Anonymous (no role)" },
+                  ...rbac.roles.map((r) => ({ value: r.id, label: r.name })),
+                ]}
+              />
+            </PropRow>
+
+            <PropRow label="Identify as">
+              <Input
+                id={fid("identity-value")}
+                value={rbac.identityId}
+                onChange={rbac.setIdentityId}
+                placeholder="user id for this session"
+              />
+            </PropRow>
+          </>
         )}
 
         {note && (
@@ -1179,8 +1244,12 @@ function IdentityCard({
         <div style={{ fontSize: 13, color: T.muted, lineHeight: 1.5 }}>
           Add a key and the workspace's roles load on their own, starting with
           the first — each mints a token bound to that role, so retrieval is
-          filtered to what it can see. The key stays in this tab; in production
-          mint the token on your server and ship only that to the page.
+          filtered to what it can see. <strong>Identify as</strong> is the user
+          the session belongs to, sent as <code>customerIdString</code>; it's
+          generated once and kept, so this test user's space and history stay
+          the same. Change it to become someone else. The key stays in this tab;
+          in production mint the token on your server and ship only that to the
+          page.
         </div>
       </div>
     </SettingsCard>
@@ -1816,7 +1885,9 @@ const akRes = await fetch(
 const { token: akToken } = await akRes.json();
 
 // 2. Exchange it for the visitor's user JWT + private space. Idempotent per
-//    customerIdString, so the same visitor keeps the same space and history.
+//    identifier, so the same visitor keeps the same space and history.
+//    { customerIdString } keys off your own user id; { userId } attaches to an
+//    existing Sharely user (UUID) and opens that account's own space.
 const spaceRes = await fetch(
   \`\${BASE}/workspaces/\${WORKSPACE_ID}/activate-or-retrieve-user-space\`,
   {
