@@ -11,7 +11,8 @@ import { WebControl } from "@sharelyai/widget";
 import {
   createHostSession,
   fetchWorkspaceMeta,
-  generateIdentityId,
+  generateUserId,
+  InvalidUserIdError,
   listRoles,
   type HostSession,
   type WorkspaceMeta,
@@ -279,19 +280,19 @@ function useDebouncedState(initial: State, delay = 400) {
 // RBAC — experience the widget as one of the workspace's roles
 // ---------------------------------------------------------------------------
 const API_KEY_STORAGE_KEY = "sharely-playground-api-key";
-// Not secret — and worth keeping across sessions, since the identifier is what
+// Not secret — and worth keeping across sessions, since the user id is what
 // makes the test user's space (and its chat history) the same one tomorrow.
 const IDENTITY_STORAGE_KEY = "sharely-playground-identity";
 
-function loadIdentityId(): string {
+function loadUserId(): string {
   try {
     const stored = localStorage.getItem(IDENTITY_STORAGE_KEY);
     if (stored) return stored;
-    const fresh = generateIdentityId();
+    const fresh = generateUserId();
     localStorage.setItem(IDENTITY_STORAGE_KEY, fresh);
     return fresh;
   } catch {
-    return generateIdentityId();
+    return generateUserId();
   }
 }
 
@@ -312,9 +313,9 @@ function useRbacSession(workspaceId: string, baseUrl: string) {
   const [session, setSession] = useState<HostSession | null>(null);
   const [status, setStatus] = useState<RbacStatus>("idle");
   const [error, setError] = useState<string | null>(null);
-  // Who the session is for — sent as `customerIdString`, so any string works.
-  // Seeded with a generated UUID so there is always a stable test user.
-  const [identityId, setIdentityIdState] = useState<string>(loadIdentityId);
+  // Who the session is for — sent as `userId`, so it must be a UUID. Seeded
+  // with a generated one so there is always a stable test user.
+  const [identityId, setIdentityIdState] = useState<string>(loadUserId);
 
   // Which role and identity are live, and which key we already tried — kept in
   // refs so the callbacks below don't churn on every keystroke.
@@ -365,13 +366,15 @@ function useRbacSession(workspaceId: string, baseUrl: string) {
           apiKey,
           role,
           organizationId: workspaceMeta.organizationId,
-          identity: { value: identityRef.current },
+          userId: identityRef.current,
         });
         setSession(next);
         setStatus("ready");
       } catch (e) {
         setSession(null);
-        setRoleId("");
+        // A malformed user id is worth fixing in place — keep the role selected
+        // so correcting it retries, instead of dropping back to anonymous.
+        if (!(e instanceof InvalidUserIdError)) setRoleId("");
         setStatus("idle");
         setError(e instanceof Error ? e.message : "Couldn't start the session");
       }
@@ -1169,7 +1172,7 @@ function IdentityCard({
     if (rbac.status === "starting") return "Starting a session for that role…";
     if (rbac.error) return rbac.error;
     if (rbac.session)
-      return `Running as ${rbac.session.roleName} · user ${rbac.session.identityLabel.slice(0, 8)}… · space ${rbac.session.spaceId.slice(0, 8)}…`;
+      return `Running as ${rbac.session.roleName} · user ${rbac.session.userId.slice(0, 8)}… · space ${rbac.session.spaceId.slice(0, 8)}…`;
     if (rbac.hasLoadedRoles && rbac.rbacEnabled)
       return "Anonymous — RBAC is on, so the widget will ask for a role";
     if (rbac.hasLoadedRoles) return "Anonymous — no role asserted";
@@ -1229,7 +1232,7 @@ function IdentityCard({
                 id={fid("identity-value")}
                 value={rbac.identityId}
                 onChange={rbac.setIdentityId}
-                placeholder="user id for this session"
+                placeholder="Sharely user UUID"
               />
             </PropRow>
           </>
@@ -1244,12 +1247,12 @@ function IdentityCard({
         <div style={{ fontSize: 13, color: T.muted, lineHeight: 1.5 }}>
           Add a key and the workspace's roles load on their own, starting with
           the first — each mints a token bound to that role, so retrieval is
-          filtered to what it can see. <strong>Identify as</strong> is the user
-          the session belongs to, sent as <code>customerIdString</code>; it's
-          generated once and kept, so this test user's space and history stay
-          the same. Change it to become someone else. The key stays in this tab;
-          in production mint the token on your server and ship only that to the
-          page.
+          filtered to what it can see. <strong>Identify as</strong> is the
+          Sharely <code>userId</code> the session belongs to: paste a real
+          user's UUID to open their own space and history, or keep the generated
+          one — an unused UUID creates that user on first use, so it stays your
+          stable test account. The key stays in this tab; in production mint the
+          token on your server and ship only that to the page.
         </div>
       </div>
     </SettingsCard>
@@ -1884,10 +1887,11 @@ const akRes = await fetch(
 );
 const { token: akToken } = await akRes.json();
 
-// 2. Exchange it for the visitor's user JWT + private space. Idempotent per
-//    identifier, so the same visitor keeps the same space and history.
-//    { customerIdString } keys off your own user id; { userId } attaches to an
-//    existing Sharely user (UUID) and opens that account's own space.
+// 2. Exchange it for the visitor's user JWT + private space. { userId } is a
+//    Sharely user UUID — an existing one opens that account's own space and
+//    history, an unused one is created on the spot. Idempotent either way, so
+//    the same visitor keeps the same space. (The endpoint also accepts
+//    { customerIdString } to key off your own ids instead.)
 const spaceRes = await fetch(
   \`\${BASE}/workspaces/\${WORKSPACE_ID}/activate-or-retrieve-user-space\`,
   {
@@ -1897,7 +1901,7 @@ const spaceRes = await fetch(
       Authorization: \`Bearer \${akToken}\`,
       organizationid: ORGANIZATION_ID,
     },
-    body: JSON.stringify({ customerIdString: YOUR_USER_ID }),
+    body: JSON.stringify({ userId: YOUR_SHARELY_USER_UUID }),
   },
 );
 const { token: externalToken, spaceId } = await spaceRes.json();

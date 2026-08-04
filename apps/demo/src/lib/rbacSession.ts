@@ -7,7 +7,7 @@
  *      → an access-key token; with `roleId` the role rides in its metadata
  *   2. PUT  /workspaces/:id/activate-or-retrieve-user-space  (Bearer ak-token)
  *      → { token, spaceId }: a real user JWT carrying the role + a private
- *        space, idempotent per `customerIdString`
+ *        space, idempotent per `userId`
  *   3. hand the widget externalToken + spaceId
  *
  * Roles are listed through the API-key surface (`GET /v1/workspaces/:id/role`,
@@ -30,29 +30,13 @@ export interface WorkspaceMeta {
 }
 
 /**
- * Who the session is for. `activate-or-retrieve-user-space` takes either
- * identifier and the role rides on the token regardless — so "logged-in user
- * *and* role" is just `userId` plus a role-bound access-key token.
- *
- * - `customerIdString` — your own user key (email, CRM id, anything stable).
- *   Sharely creates a user keyed to it on first use and reuses it after.
- * - `userId` — an existing Sharely user **UUID**. The session then opens that
- *   user's own private space, history included.
+ * A user id for the playground's test user. `activate-or-retrieve-user-space`
+ * takes `userId` as a Sharely user UUID: an existing one opens that user's own
+ * private space (history included), an unused one is created on the spot. The
+ * role rides on the access-key token either way, so "real user *and* role" is
+ * just this id plus a role-bound token.
  */
-export type IdentityMode = "customerIdString" | "userId";
-
-export interface Identity {
-  /** Defaults to `customerIdString` — the mode any embedder can use. */
-  mode?: IdentityMode;
-  /** Empty means "per-role playground identity" — see `identityBody`. */
-  value: string;
-}
-
-/**
- * A random, stable identifier for the playground's test user. Any string works
- * as a `customerIdString`; a UUID just avoids colliding with a real user key.
- */
-export function generateIdentityId(): string {
+export function generateUserId(): string {
   // randomUUID needs a secure context — absent when the playground is opened
   // over plain http on a LAN address (phone testing), so fall back by hand.
   if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
@@ -68,8 +52,8 @@ export interface HostSession {
   spaceId: string;
   roleId: string;
   roleName: string;
-  /** The identifier actually sent, for display. */
-  identityLabel: string;
+  /** The `userId` actually sent, for display. */
+  userId: string;
 }
 
 const UUID_RE =
@@ -78,15 +62,13 @@ const UUID_RE =
 export const isUuid = (value: string) => UUID_RE.test(value.trim());
 
 /**
- * A `userId` that doesn't exist is **created** by the backend rather than
- * rejected, so a typo silently mints a ghost user. Refuse anything that isn't
- * a UUID before it reaches the API.
+ * The backend takes `userId` as `string().uuid()`, so a malformed value comes
+ * back as a bare 400. Catch it here for a message that says what's wrong.
+ * (A well-formed but unknown UUID can't be caught — that one gets created.)
  */
 export class InvalidUserIdError extends Error {
   constructor() {
-    super(
-      "A Sharely user id must be a UUID — check the value, or use Custom id.",
-    );
+    super("The user id must be a UUID — check the value in Identify as.");
     this.name = "InvalidUserIdError";
   }
 }
@@ -182,29 +164,9 @@ export async function listRoles(
 }
 
 /**
- * The `{ customerIdString }` / `{ userId }` body plus a human label for it.
- * With no identity given we fall back to a per-role playground key, so
- * re-picking a role reuses its space instead of piling up empty ones.
- */
-function identityBody(role: WorkspaceRole, identity?: Identity) {
-  const value = identity?.value.trim() ?? "";
-  if (!value) {
-    return {
-      body: { customerIdString: `playground-${role.id}` },
-      label: `playground-${role.id}`,
-    };
-  }
-  if (identity?.mode === "userId") {
-    if (!isUuid(value)) throw new InvalidUserIdError();
-    return { body: { userId: value }, label: value };
-  }
-  return { body: { customerIdString: value }, label: value };
-}
-
-/**
- * Steps 1–2 — a user JWT + private space carrying `role`, for whoever
- * `identity` names. The role always comes from the access-key token, so any
- * identity can be paired with any role.
+ * Steps 1–2 — a user JWT + private space carrying `role`, for the user
+ * `userId` names. The role always comes from the access-key token, so any
+ * user can be paired with any role.
  */
 export async function createHostSession(params: {
   baseUrl: string;
@@ -212,13 +174,13 @@ export async function createHostSession(params: {
   apiKey: string;
   role: WorkspaceRole;
   organizationId: string;
-  identity?: Identity;
+  userId: string;
 }): Promise<HostSession> {
-  const { baseUrl, workspaceId, apiKey, role, organizationId, identity } =
-    params;
-  // Throws before any request when the id is malformed — the backend would
-  // happily create a user for it instead of complaining.
-  const { body, label } = identityBody(role, identity);
+  const { baseUrl, workspaceId, apiKey, role, organizationId } = params;
+  const userId = params.userId.trim();
+  // Checked before spending a token mint — the backend answers a malformed
+  // uuid with a bare 400 that says nothing useful.
+  if (!isUuid(userId)) throw new InvalidUserIdError();
 
   const akToken = await mintAccessKeyToken(
     baseUrl,
@@ -237,7 +199,7 @@ export async function createHostSession(params: {
           Authorization: `Bearer ${akToken}`,
           organizationid: organizationId,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ userId }),
       },
     );
     if (!session?.token || !session?.spaceId) {
@@ -250,7 +212,7 @@ export async function createHostSession(params: {
       spaceId: session.spaceId,
       roleId: role.id,
       roleName: role.name,
-      identityLabel: label,
+      userId,
     };
   } catch (error) {
     // RBAC workspaces refuse role-less sessions — a distinct, friendly case.
