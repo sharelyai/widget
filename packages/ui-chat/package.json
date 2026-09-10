@@ -1,6 +1,6 @@
 {
   "name": "@sharelyai/widget-ui-chat",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Sharely AI",
   "publishConfig": {
     "access": "public",
