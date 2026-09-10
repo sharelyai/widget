@@ -1,5 +1,13 @@
 import styled, { css, DefaultTheme } from "styled-components";
 
+// ---------- Open panel sizing ----------
+
+/**
+ * Inset every floating mode keeps from the viewport edge. The position
+ * helpers below hardcode the same value; keep them in step.
+ */
+const PANEL_INSET = 20;
+
 // ---------- Position mode helpers ----------
 
 const positionTopCenterFloating = (theme: DefaultTheme) => css`
@@ -235,10 +243,22 @@ export const Wrapper = styled.div.withConfig({
         border-radius: 0;
       }
 
-      /* Desktop: fixed panel size */
+      /* Desktop: fill the space the widget is given, minus its edge insets.
+         "100%" resolves against the containing block, so on a page that is
+         the viewport, and inside the playground preview (which establishes
+         one with a transform) it is the preview area.
+
+         Horizontally each mode uses a single inset (or centres itself), so
+         one on each side is enough. Vertically the bottom-anchored modes
+         stack a bottom offset with a bottom margin, so reserve two insets at
+         the bottom and one at the top — otherwise a short viewport pins the
+         panel flush against the top edge.
+
+         Callers that want a bounded panel pass displayMode width/height,
+         which override this with !important below. */
       @media (min-width: ${theme.screens.lg}) {
-        width: 1008px;
-        height: 619px;
+        width: calc(100% - ${PANEL_INSET * 2}px);
+        height: calc(100% - ${PANEL_INSET * 3}px);
         border-radius: 20px;
         touch-action: initial;
         -ms-touch-action: initial;
