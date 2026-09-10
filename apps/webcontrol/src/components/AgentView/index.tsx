@@ -29,6 +29,7 @@ import {
   SourcesList,
   AllSourcesModal,
   AgentMessageContent,
+  ErrorMessage,
 } from "@sharelyai/widget-ui-agent-chat";
 
 interface AgentViewProps {
@@ -327,11 +328,28 @@ export const AgentView = ({
 
           {/* Messages list */}
           {!hasJustGreeting &&
-            messages.map((msg: any) => {
+            messages.map((msg: any, index: number) => {
               const isAi = msg.type === constants.CONVERSATIONS_TYPE_AI;
               const hasThinking = isAi && msg.thinkingSteps?.length > 0;
               const hasToolCalls = isAi && msg.toolCalls?.length > 0;
               const hasSources = isAi && msg.sources?.length > 0;
+              const isError = isAi && msg.finishReason === "error";
+              const isLast = index === messages.length - 1;
+              const onRetry = isLast ? agentChat.retryLastMessage : undefined;
+
+              if (isError && !msg.message) {
+                return (
+                  <div
+                    key={msg.id}
+                    className="sharelyai-webcontroller-agent-content"
+                  >
+                    <ErrorMessage
+                      message={msg.errorMessage}
+                      onRetry={onRetry}
+                    />
+                  </div>
+                );
+              }
 
               return (
                 <div key={msg.id}>
@@ -355,7 +373,7 @@ export const AgentView = ({
                       ) : undefined
                     }
                     footer={
-                      hasThinking || hasToolCalls || hasSources ? (
+                      hasThinking || hasToolCalls || hasSources || isError ? (
                         <div className="sharelyai-webcontroller-agent-content">
                           {(hasThinking || hasToolCalls) && (
                             <ThinkingIndicator
@@ -369,6 +387,12 @@ export const AgentView = ({
                               sources={msg.sources}
                               defaultCollapsed={true}
                               onShowAllSources={setAllSourcesData}
+                            />
+                          )}
+                          {isError && (
+                            <ErrorMessage
+                              message={msg.errorMessage}
+                              onRetry={onRetry}
                             />
                           )}
                         </div>

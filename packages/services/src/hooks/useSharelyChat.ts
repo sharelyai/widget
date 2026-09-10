@@ -14,6 +14,7 @@ import { DefaultChatTransport } from "ai";
 import type { UIMessage } from "ai";
 import { useGlobalStore } from "../stores/globalStore";
 import { agentFetcher } from "../api/agentApi";
+import { isRecoveredTurn } from "../utils/streamRecovery";
 import { createSharelyFetch } from "../ai/sharelyFetch";
 import {
   agentMessagesToUIMessages,
@@ -23,6 +24,10 @@ import {
   sourcePartsToSources,
 } from "../ai/convertMessages";
 import type { AgentMessage, UseAgentChatReturn } from "../types/agent";
+
+const RECOVERY_DELAYS_MS = [0, 1500, 4000];
+const CONNECTION_LOST_MESSAGE =
+  "The connection dropped before the answer arrived.";
 
 interface UseSharelyChatOptions {
   spaceId: string;
@@ -58,6 +63,8 @@ export function useSharelyChat(
 
   const threadIdRef = useRef<string | null>(initialThreadId || null);
   const prevChatStatusRef = useRef<string>("ready");
+  const assistantsBeforeTurnRef = useRef(0);
+  const [turnFailure, setTurnFailure] = useState<string | null>(null);
 
   const getBasePath = useCallback(() => {
     if (!workspaceId) return null;
@@ -237,36 +244,83 @@ export function useSharelyChat(
     }
   }, [chat.status, isCreatingThread]);
 
-  // After streaming completes, reload messages from server to get definitive
-  // database IDs and full metadata (replaces client-generated IDs).
+  // After a turn ends, read it back from the server: that copy carries the
+  // definitive database IDs and full metadata, and — when the stream ended
+  // early — the answer the client never received.
+  //
+  // The re-read is deliberately not a single shot. A healthy turn is already
+  // persisted by the time the SDK reports "ready", so the first attempt
+  // succeeds; a turn whose stream died can beat the server's write by several
+  // seconds, so the later attempts cover that window. Nothing is committed
+  // until the thread actually ends in a completed assistant message, because
+  // replacing the messages with a half-written thread is what silently
+  // discarded the answer before.
   useEffect(() => {
     const wasActive =
       prevChatStatusRef.current === "streaming" ||
       prevChatStatusRef.current === "submitted";
-    const isNowDone = chat.status === "ready";
+    if (chat.status === "submitted") {
+      assistantsBeforeTurnRef.current = chatRef.current.messages.filter(
+        (m) => m.role === "assistant",
+      ).length;
+      setTurnFailure(null);
+    }
+    const isNowDone = chat.status === "ready" || chat.status === "error";
     prevChatStatusRef.current = chat.status;
 
-    if (wasActive && isNowDone) {
-      const tid = threadIdRef.current;
-      if (!tid) return;
+    if (!wasActive || !isNowDone) return;
 
-      const basePath = getBasePath();
-      if (!basePath) return;
+    const tid = threadIdRef.current;
+    const basePath = getBasePath();
+    if (!tid || !basePath) return;
 
-      agentFetcher<ThreadResponse>(`${basePath}/threads/${tid}`)
-        .then((data) => {
-          if (
-            chatRef.current.status === "ready" &&
-            threadIdRef.current === tid
-          ) {
-            const uiMessages = agentMessagesToUIMessages(data.messages || []);
-            chatRef.current.setMessages(uiMessages);
-          }
-        })
-        .catch(() => {
-          // Non-critical: streamed messages remain usable
-        });
-    }
+    let cancelled = false;
+    const assistantsBefore = assistantsBeforeTurnRef.current;
+
+    (async () => {
+      for (const delayMs of RECOVERY_DELAYS_MS) {
+        if (delayMs) await new Promise((r) => setTimeout(r, delayMs));
+        if (cancelled || threadIdRef.current !== tid) return;
+
+        let data: ThreadResponse;
+        try {
+          data = await agentFetcher<ThreadResponse>(
+            `${basePath}/threads/${tid}`,
+          );
+        } catch {
+          continue;
+        }
+        if (cancelled || threadIdRef.current !== tid) return;
+
+        const serverMessages = data.messages || [];
+        if (
+          !isRecoveredTurn(serverMessages, {
+            assistantsBefore,
+            // The SDK generates its own message ids, so there is nothing to
+            // match against here — the assistant count is the guard.
+            expectedId: null,
+          })
+        ) {
+          continue;
+        }
+
+        chatRef.current.setMessages(agentMessagesToUIMessages(serverMessages));
+        setTurnFailure(null);
+        return;
+      }
+
+      // The turn produced no answer we can show. Say so, rather than leaving
+      // an empty bubble behind.
+      if (!cancelled && threadIdRef.current === tid) {
+        setTurnFailure(
+          chatRef.current.error?.message || CONNECTION_LOST_MESSAGE,
+        );
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [chat.status, getBasePath]);
 
   // Load initial thread on mount
@@ -316,23 +370,50 @@ export function useSharelyChat(
       );
     const effectivePending = sdkHasPendingMsg ? null : pendingUserMessage;
 
-    if (
+    const base =
       isStreaming &&
       lastAssistantMsg &&
       all.length > 0 &&
       all[all.length - 1].role === "assistant"
-    ) {
-      const result = all.slice(0, -1);
-      if (effectivePending) {
-        return [...result, effectivePending];
-      }
-      return result;
+        ? all.slice(0, -1)
+        : all;
+    const withPending = effectivePending ? [...base, effectivePending] : base;
+
+    if (!turnFailure) return withPending;
+
+    // Attach the failure to this turn's assistant message so the UI can show
+    // an error with a retry. If the turn never produced one, stand in for it —
+    // an assistant row with no content and no explanation is the bug.
+    const last = withPending[withPending.length - 1];
+    if (last?.role === "assistant") {
+      return [
+        ...withPending.slice(0, -1),
+        { ...last, finishReason: "error", errorMessage: turnFailure },
+      ];
     }
-    if (effectivePending) {
-      return [...all, effectivePending];
-    }
-    return all;
-  }, [chat.messages, isStreaming, lastAssistantMsg, pendingUserMessage]);
+    return [
+      ...withPending,
+      {
+        id: `error-${last?.id ?? "turn"}`,
+        role: "assistant",
+        content: "",
+        thinkingSteps: [],
+        toolCalls: [],
+        sources: [],
+        tokenUsage: null,
+        model: null,
+        finishReason: "error",
+        errorMessage: turnFailure,
+        createdAt: new Date().toISOString(),
+      },
+    ];
+  }, [
+    chat.messages,
+    isStreaming,
+    lastAssistantMsg,
+    pendingUserMessage,
+    turnFailure,
+  ]);
 
   const lastParts = (lastAssistantMsg?.parts as any[]) || [];
 
@@ -384,6 +465,25 @@ export function useSharelyChat(
     chatRef.current.stop();
   }, []);
 
+  // Re-ask the last question. The SDK owns the message list, so the failed
+  // turn has to come off it before sending again.
+  const retryLastMessage = useCallback(() => {
+    const msgs = [...chatRef.current.messages];
+    while (msgs.length > 0 && msgs[msgs.length - 1].role === "assistant") {
+      msgs.pop();
+    }
+    const lastUser = msgs[msgs.length - 1];
+    const text = (lastUser?.parts as { type: string; text?: string }[])?.find(
+      (part) => part.type === "text",
+    )?.text;
+    if (lastUser?.role !== "user" || !text) return;
+
+    chatRef.current.setMessages(msgs.slice(0, -1));
+    setTurnFailure(null);
+    setHookError(null);
+    chatRef.current.sendMessage({ text });
+  }, []);
+
   return {
     threadId,
     messages,
@@ -401,6 +501,6 @@ export function useSharelyChat(
     resetChat,
     clearError,
     suggestedFollowups: [],
-    retryLastMessage: () => {},
+    retryLastMessage,
   };
 }

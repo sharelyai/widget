@@ -24,6 +24,8 @@ export interface BodyMessage {
     source: string;
     metadata: unknown;
   }[];
+  finishReason?: string | null;
+  errorMessage?: string;
   createdAt?: string;
 }
 
@@ -73,6 +75,8 @@ export function agentMessageToBodyMessage(msg: AgentMessage): BodyMessage {
     toolCalls: msg.toolCalls,
     sources: msg.sources,
     sourcesMetadata,
+    finishReason: msg.finishReason,
+    errorMessage: msg.errorMessage,
     createdAt: msg.createdAt,
   };
 }
