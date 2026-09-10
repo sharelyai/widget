@@ -22,6 +22,7 @@ export interface AgentMessage {
   tokenUsage: TokenUsage | null;
   model: string | null;
   finishReason: string | null;
+  errorMessage?: string;
   createdAt: string;
 }
 

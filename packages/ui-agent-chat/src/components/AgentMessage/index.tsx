@@ -66,15 +66,20 @@ export function AgentMessage({
     );
   }
 
-  // Check for error state
-  if (!message.content && message.finishReason === "error") {
+  const isError = message.finishReason === "error";
+
+  // Failed turn with nothing to show: the error card replaces the message.
+  if (isError && !displayContent) {
     return (
       <AiRow>
         <Avatar>
           {avatarSrc ? <img src={avatarSrc} alt="" /> : <BotIcon size={18} />}
         </Avatar>
         <AiContent>
-          <ErrorMessage onRetry={isLast ? onRetry : undefined} />
+          <ErrorMessage
+            message={message.errorMessage}
+            onRetry={isLast ? onRetry : undefined}
+          />
         </AiContent>
       </AiRow>
     );
@@ -106,6 +111,14 @@ export function AgentMessage({
               {displayContent}
             </ReactMarkdown>
           </ResponseText>
+        )}
+
+        {/* Failed after partial output — keep the text, offer the retry */}
+        {isError && (
+          <ErrorMessage
+            message={message.errorMessage}
+            onRetry={isLast ? onRetry : undefined}
+          />
         )}
 
         {/* Sources */}

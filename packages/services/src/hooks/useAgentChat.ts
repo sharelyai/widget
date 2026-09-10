@@ -27,13 +27,19 @@ import {
   processLoadedMessages,
   processLoadedMessageSources,
 } from "../utils/sourceParser";
+import { isRecoveredTurn } from "../utils/streamRecovery";
 import { useAgentSSE } from "./useAgentSSE";
+import type { StreamEnd } from "./useAgentSSE";
 import { useGlobalStore } from "../stores/globalStore";
 
 interface UseAgentChatOptions {
   spaceId: string;
   initialThreadId?: string;
 }
+
+const RECOVERY_DELAYS_MS = [0, 1500, 4000];
+const CONNECTION_LOST_MESSAGE =
+  "The connection dropped before the answer arrived.";
 
 interface ThreadResponse {
   id: string;
@@ -61,9 +67,9 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
   const thinkingStepsRef = useRef<ThinkingStep[]>([]);
   const activeToolCallsRef = useRef<ToolCall[]>([]);
   const activeSourcesRef = useRef<Source[]>([]);
-  // Tracks whether the "done" SSE event was received so that onComplete
-  // can act as a fallback without double-committing.
   const doneReceivedRef = useRef(false);
+  const streamErrorRef = useRef<string | null>(null);
+  const messagesRef = useRef<AgentMessage[]>([]);
 
   // Ref for raw source data from tool_call_end/tool_result events
   const rawSourceDataRef = useRef<
@@ -93,6 +99,10 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
   const [suggestedFollowups, setSuggestedFollowups] = useState<string[]>([]);
 
   const { startStream, stopStream } = useAgentSSE();
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   const updateStreamingContent = useCallback(
     (updater: (prev: string) => string) => {
@@ -136,6 +146,15 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
     return `/workspaces/${workspaceId}/agent`;
   }, [workspaceId]);
 
+  const fetchThread = useCallback(
+    async (tid: string): Promise<ThreadResponse | null> => {
+      const basePath = getBasePath();
+      if (!basePath) return null;
+      return agentFetcher<ThreadResponse>(`${basePath}/threads/${tid}`);
+    },
+    [getBasePath],
+  );
+
   // Load thread messages
   const loadThread = useCallback(
     async (tid: string) => {
@@ -144,9 +163,8 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
         return;
       }
       try {
-        const data = await agentFetcher<ThreadResponse>(
-          `${basePath}/threads/${tid}`,
-        );
+        const data = await fetchThread(tid);
+        if (!data) return;
         threadIdRef.current = tid;
         setThreadId(tid);
         // Process loaded messages to merge sources with toolCalls data
@@ -157,7 +175,7 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
         setError((e as Error).message);
       }
     },
-    [getBasePath],
+    [getBasePath, fetchThread],
   );
 
   // Create new thread
@@ -183,6 +201,68 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
       return data.id;
     },
     [spaceId, getBasePath, config],
+  );
+
+  // Drop everything tied to the in-flight turn.
+  const resetStreamingState = useCallback(() => {
+    updateStreamingContent(() => "");
+    updateThinkingSteps(() => []);
+    updateActiveToolCalls(() => []);
+    updateActiveSources(() => []);
+    streamingMessageIdRef.current = null;
+    setStreamingMessageId(null);
+    setIsStreaming(false);
+  }, [
+    updateStreamingContent,
+    updateThinkingSteps,
+    updateActiveToolCalls,
+    updateActiveSources,
+  ]);
+
+  // Commit whatever streamed into the transcript. `finishReason` must describe
+  // what actually happened — "end_turn" only ever comes from a real "done"
+  // event, because the error UI and its retry button key off "error".
+  const commitStreamingMessage = useCallback(
+    (finishReason: string, errorMessage?: string) => {
+      // Finalize any steps/tool calls still in "running" state.
+      // The backend may not always send "message_end" before "done",
+      // which would leave items as "running" in the committed message
+      // and cause the ThinkingIndicator spinner to spin indefinitely.
+      const finalThinkingSteps = thinkingStepsRef.current.map((step) =>
+        step.status === "running"
+          ? { ...step, status: "completed" as const }
+          : step,
+      );
+      const finalToolCalls = activeToolCallsRef.current.map((tc) =>
+        tc.status === "running" ? { ...tc, status: "completed" as const } : tc,
+      );
+      const finalContent = streamingContentRef.current;
+      const finalSources = processLoadedMessageSources({
+        sources: activeSourcesRef.current,
+        toolCalls: finalToolCalls,
+      });
+      const messageId = streamingMessageIdRef.current;
+
+      setMessages((prev) => {
+        const assistantMessage: AgentMessage = {
+          id: messageId || `msg-${Date.now()}`,
+          role: "assistant",
+          content: finalContent,
+          thinkingSteps: finalThinkingSteps,
+          toolCalls: finalToolCalls,
+          sources: finalSources,
+          tokenUsage: null,
+          model: null,
+          finishReason,
+          ...(errorMessage ? { errorMessage } : {}),
+          createdAt: new Date().toISOString(),
+        };
+        return [...prev, assistantMessage];
+      });
+
+      resetStreamingState();
+    },
+    [resetStreamingState],
   );
 
   // Handle SSE events (supports both new backend format and legacy format)
@@ -433,56 +513,20 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
 
         case "error": {
           const event = data as ErrorEvent;
+          // Record only. The turn is committed once, by the terminal handler,
+          // so a server error cannot be overwritten by an empty "success".
+          streamErrorRef.current = event.error;
           setError(event.error);
-          setIsStreaming(false);
           break;
         }
 
         case "done": {
           doneReceivedRef.current = true;
-
-          // Finalize any steps/tool calls still in "running" state.
-          // The backend may not always send "message_end" before "done",
-          // which would leave items as "running" in the committed message
-          // and cause the ThinkingIndicator spinner to spin indefinitely.
-          const finalThinkingSteps = thinkingStepsRef.current.map((step) =>
-            step.status === "running"
-              ? { ...step, status: "completed" as const }
-              : step,
+          const failed = streamErrorRef.current;
+          commitStreamingMessage(
+            failed ? "error" : "end_turn",
+            failed || undefined,
           );
-          const finalToolCalls = activeToolCallsRef.current.map((tc) =>
-            tc.status === "running"
-              ? { ...tc, status: "completed" as const }
-              : tc,
-          );
-          const finalContent = streamingContentRef.current;
-          const finalSources = processLoadedMessageSources({
-            sources: activeSourcesRef.current,
-            toolCalls: finalToolCalls,
-          });
-
-          setMessages((prev) => {
-            const assistantMessage: AgentMessage = {
-              id: streamingMessageIdRef.current || `msg-${Date.now()}`,
-              role: "assistant",
-              content: finalContent,
-              thinkingSteps: finalThinkingSteps,
-              toolCalls: finalToolCalls,
-              sources: finalSources,
-              tokenUsage: null,
-              model: null,
-              finishReason: "end_turn",
-              createdAt: new Date().toISOString(),
-            };
-            return [...prev, assistantMessage];
-          });
-
-          updateStreamingContent(() => "");
-          updateThinkingSteps(() => []);
-          updateActiveToolCalls(() => []);
-          updateActiveSources(() => []);
-          setStreamingMessageId(null);
-          setIsStreaming(false);
           break;
         }
       }
@@ -492,7 +536,85 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
       updateThinkingSteps,
       updateActiveToolCalls,
       updateActiveSources,
+      commitStreamingMessage,
     ],
+  );
+
+  // The turn's answer is persisted server-side before the tail SSE events are
+  // sent, so a stream that dies after the last tool call has almost always
+  // left a complete message behind. Ask for it rather than committing the gap.
+  const recoverPersistedTurn = useCallback(
+    async (delays: number[]): Promise<boolean> => {
+      const tid = threadIdRef.current;
+      if (!tid) return false;
+
+      const assistantsBefore = messagesRef.current.filter(
+        (m) => m.role === "assistant",
+      ).length;
+      const expectedId = streamingMessageIdRef.current;
+
+      for (const delayMs of delays) {
+        if (delayMs) await new Promise((r) => setTimeout(r, delayMs));
+
+        let data: ThreadResponse | null;
+        try {
+          data = await fetchThread(tid);
+        } catch {
+          continue;
+        }
+        if (!data) return false;
+
+        const serverMessages = processLoadedMessages(data.messages || []);
+        if (
+          !isRecoveredTurn(serverMessages, { assistantsBefore, expectedId })
+        ) {
+          continue;
+        }
+
+        setMessages(serverMessages);
+        resetStreamingState();
+        setError(null);
+        return true;
+      }
+
+      return false;
+    },
+    [fetchThread, resetStreamingState],
+  );
+
+  // Single terminal path for a turn: exactly one of these runs per stream.
+  const handleStreamEnd = useCallback(
+    async (end: StreamEnd) => {
+      // A real "done" already committed this turn.
+      if (doneReceivedRef.current) return;
+
+      if (end.reason === "aborted") {
+        // User pressed stop. Keep the partial answer — but only if there is
+        // text to keep. Committing tool calls with no text would render the
+        // same bare "Completed N steps" chip this fix exists to eliminate.
+        if (streamingContentRef.current.trim()) commitStreamingMessage("stop");
+        else resetStreamingState();
+        return;
+      }
+
+      // "closed"  — body ended without a terminal event (truncated response,
+      //             proxy timeout, tab suspended, connection dropped)
+      // "stalled" — socket alive but silent past the watchdog window
+      // "error"   — network or HTTP failure
+      // A server-reported error means nothing more is coming, so check once;
+      // a dropped connection may have raced the message write, so back off.
+      const recovered = await recoverPersistedTurn(
+        streamErrorRef.current ? [0] : RECOVERY_DELAYS_MS,
+      );
+      if (recovered) return;
+
+      const message =
+        streamErrorRef.current ||
+        (end.reason === "error" ? end.error.message : CONNECTION_LOST_MESSAGE);
+      setError(message);
+      commitStreamingMessage("error", message);
+    },
+    [commitStreamingMessage, recoverPersistedTurn, resetStreamingState],
   );
 
   // Send message - returns the threadId used
@@ -537,27 +659,19 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
 
       setIsStreaming(true);
       setError(null);
+      // Per-turn reset. doneReceivedRef in particular must not survive the
+      // previous turn: a stream that dies before "message_start" would
+      // otherwise look already-completed and leave the UI spinning forever.
+      doneReceivedRef.current = false;
+      streamErrorRef.current = null;
+      streamingMessageIdRef.current = null;
 
       const languageId = config?.langKnowledge;
       try {
         await startStream(
           `${basePath}/threads/${tid}/chat`,
           { message: content, ...(languageId ? { languageId } : {}) },
-          {
-            onEvent: handleEvent,
-            onError: (e) => {
-              setError(e.message);
-              setIsStreaming(false);
-            },
-            onComplete: () => {
-              // Normally handled by the 'done' SSE event. This is a safety
-              // fallback in case the stream closes without sending 'done'
-              // (e.g. network interruption, server timeout).
-              if (!doneReceivedRef.current) {
-                handleEvent("done" as SSEEventType, {});
-              }
-            },
-          },
+          { onEvent: handleEvent, onEnd: handleStreamEnd },
         );
       } catch (e) {
         setError((e as Error).message);
@@ -566,18 +680,27 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
 
       return tid;
     },
-    [createThread, startStream, handleEvent, getBasePath, config],
+    [
+      createThread,
+      startStream,
+      handleEvent,
+      handleStreamEnd,
+      getBasePath,
+      config,
+    ],
   );
 
-  // Stop streaming
+  // Stop streaming. The abort surfaces as an "aborted" stream end, which
+  // commits the partial answer instead of throwing it away.
   const handleStopStreaming = useCallback(() => {
     stopStream();
-    setIsStreaming(false);
   }, [stopStream]);
 
   // Reset chat to fresh state without API call
   const resetChat = useCallback(() => {
     threadIdRef.current = null;
+    doneReceivedRef.current = false;
+    streamErrorRef.current = null;
     setThreadId(null);
     setMessages([]);
     updateStreamingContent(() => "");
