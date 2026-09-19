@@ -23,6 +23,7 @@ import {
   useLanguage,
   classNames,
 } from "@sharelyai/widget-services";
+import { Snippet } from "../../Snippet";
 
 const Container: any = styled.div`
   ${({ theme }) => css`
@@ -316,6 +317,10 @@ type ComponentProps = {
   score?: number;
   metadata: any;
   showDropdown?: boolean;
+  /** Which search list returned the item; set by `mergeSearchResults`. */
+  source?: "title" | "lexical" | "semantic";
+  /** Lexical hits: matched excerpt with `<mark>` highlights. */
+  snippet?: string | null;
 };
 
 const RelevantScore = ({ score }: { score: number }) => {
@@ -397,12 +402,16 @@ export const ListSearchItem = (props: ComponentProps) => {
                 </span>
               )}
               {sourceName && <span className="item">{sourceName}</span>}
-              {item?.score != null && item.score > 0 && (
-                <>
-                  <Divider type="dot" />
-                  <RelevantScore score={item.score} />
-                </>
-              )}
+              {/* ts_rank_cd scores are not percentages: only semantic
+                  (cosine) scores are shown as relevance. */}
+              {item?.source !== "lexical" &&
+                item?.score != null &&
+                item.score > 0 && (
+                  <>
+                    <Divider type="dot" />
+                    <RelevantScore score={item.score} />
+                  </>
+                )}
               {page && !showPageAsPill && (
                 <>
                   <Divider type="dot" />
@@ -444,7 +453,14 @@ export const ListSearchItem = (props: ComponentProps) => {
           )}
         </div>
       </div>
-      {showDescription && <div className="description">{description}</div>}
+      {showDescription &&
+        (item?.snippet ? (
+          <div className="description">
+            <Snippet snippet={item.snippet} />
+          </div>
+        ) : (
+          <div className="description">{description}</div>
+        ))}
     </Container>
   );
 };

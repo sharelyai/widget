@@ -9,6 +9,8 @@ import {
   useGlobalStore,
   constants,
   useSharelyContext,
+  mergeSearchResults,
+  toLexicalLanguage,
 } from "@sharelyai/widget-services";
 import { useResponsive } from "@sharelyai/widget-ui-shared";
 
@@ -66,6 +68,9 @@ export const SearchPanel = () => {
       tags?.map((tag) => tag.id) || tagsSelected.map((tag) => tag.id);
     const queryText = query || searchText;
     setIsLoadingSearch(true);
+    // Results are set once, after every call resolves; clear the previous
+    // query's list so it is not shown next to the loading state.
+    setResponseSearch([]);
 
     apiClient.spaces.sendEvent(
       currentInformation.spaceId,
@@ -84,31 +89,47 @@ export const SearchPanel = () => {
         ? undefined
         : config?.langKnowledge;
 
-      const promiseQueryTitle = apiClient
-        .fetcher<any[]>(
-          `/workspaces/${config?.workspaceId}/knowledge/query-title`,
-          {
-            method: "POST",
-            body: JSON.stringify({
-              value: queryText,
-              languageId,
-            }),
-          },
-        )
-        .then((data) => {
-          const existingTitles = new Set();
-          setResponseSearch([]);
-          setResponseSearch((prev: any[]) => {
-            prev.forEach((item) => existingTitles.add(item.title));
-            const uniqueData = data.filter(
-              (item) => !existingTitles.has(item.title),
-            );
-            return [...prev, ...uniqueData];
-          });
-        });
+      const promiseQueryTitle = apiClient.fetcher<any[]>(
+        `/workspaces/${config?.workspaceId}/knowledge/query-title`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            value: queryText,
+            languageId,
+          }),
+        },
+      );
 
-      const promiseQuery = apiClient
-        .fetcher<any[]>(`/workspaces/${config?.workspaceId}/knowledge/query`, {
+      // The lexical index only covers en/es; other languages skip the call.
+      const lexicalLanguageId = toLexicalLanguage(languageId);
+      const promiseQueryLexical =
+        config?.lexicalSearch !== false && lexicalLanguageId
+          ? apiClient
+              .fetcher<any[]>(
+                `/workspaces/${config?.workspaceId}/knowledge/query-lexical`,
+                {
+                  method: "POST",
+                  body: JSON.stringify({
+                    text: queryText,
+                    languageId: lexicalLanguageId,
+                    tags: queryTags || null,
+                    topK: 30,
+                    includeSnippets: true,
+                  }),
+                },
+              )
+              // Lexical is additive: a workspace without the feature answers
+              // 404 (LEXICAL_SEARCH_DISABLED), and any other failure must not
+              // take the title + semantic results down with it.
+              .catch((error) => {
+                if (error?.status !== 404) console.error(error);
+                return [] as any[];
+              })
+          : Promise.resolve([] as any[]);
+
+      const promiseQuery = apiClient.fetcher<any[]>(
+        `/workspaces/${config?.workspaceId}/knowledge/query`,
+        {
           method: "POST",
           body: JSON.stringify({
             text: queryText,
@@ -117,20 +138,15 @@ export const SearchPanel = () => {
             tags: queryTags || null,
             languageId,
           }),
-        })
-        .then((data) => {
-          setResponseSearch((prev: any[]) => {
-            const existingTitles = new Set(prev.map((item) => item.title));
-            const uniqueData = data.filter(
-              (item, index, self) =>
-                !existingTitles.has(item.title) &&
-                self.findIndex((i) => i.title === item.title) === index,
-            );
-            return [...prev, ...uniqueData];
-          });
-        });
+        },
+      );
 
-      await Promise.all([promiseQueryTitle, promiseQuery]);
+      const [title, lexical, semantic] = await Promise.all([
+        promiseQueryTitle,
+        promiseQueryLexical,
+        promiseQuery,
+      ]);
+      setResponseSearch(mergeSearchResults({ title, lexical, semantic }));
       setIsLoadingSearch(false);
     } catch (error) {
       console.error(error);
