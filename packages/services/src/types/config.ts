@@ -58,4 +58,6 @@ export interface SharelyConfig {
   hideHostElements?: string[];
   /** Search across all knowledge languages instead of filtering by langKnowledge. */
   searchAllLanguages?: boolean;
+  /** Adds the lexical (content keyword) search list. Default true. */
+  lexicalSearch?: boolean;
 }

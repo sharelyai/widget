@@ -12,6 +12,7 @@ import {
   useResourceListItem,
   classNames,
 } from "@sharelyai/widget-services";
+import { Snippet } from "../Snippet";
 
 const Container: any = styled.div`
   ${({ theme }: { theme: any }) => css`
@@ -319,7 +320,7 @@ export const SearchResultCard = (props: any) => {
                 </span>
               )}
               {sourceName && <span className="item">{sourceName}</span>}
-              {item?.score > 0 && (
+              {item?.source !== "lexical" && item?.score > 0 && (
                 <>
                   <Divider type="dot" />
                   <RelevantScore score={item.score} />
@@ -345,7 +346,14 @@ export const SearchResultCard = (props: any) => {
           )}
         </div>
       </div>
-      {showDescription && <div className="description">{description}</div>}
+      {showDescription &&
+        (item?.snippet ? (
+          <div className="description">
+            <Snippet snippet={item.snippet} />
+          </div>
+        ) : (
+          <div className="description">{description}</div>
+        ))}
     </Container>
   );
 };
