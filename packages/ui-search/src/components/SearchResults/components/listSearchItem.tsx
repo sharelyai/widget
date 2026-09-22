@@ -453,14 +453,15 @@ export const ListSearchItem = (props: ComponentProps) => {
           )}
         </div>
       </div>
-      {showDescription &&
-        (item?.snippet ? (
-          <div className="description">
-            <Snippet snippet={item.snippet} />
-          </div>
-        ) : (
-          <div className="description">{description}</div>
-        ))}
+      {/* The highlighted excerpt is the evidence for a lexical hit, so it is
+          shown even where a workspace hides the (AI) description. */}
+      {item?.snippet ? (
+        <div className="description">
+          <Snippet snippet={item.snippet} />
+        </div>
+      ) : (
+        showDescription && <div className="description">{description}</div>
+      )}
     </Container>
   );
 };

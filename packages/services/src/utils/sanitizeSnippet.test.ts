@@ -43,6 +43,13 @@ describe("snippetToSegments", () => {
     ]);
   });
 
+  it("decodes numeric entities", () => {
+    expect(snippetToSegments("<mark>Exile</mark> &#038; Return &#x2014; study")).toEqual([
+      { text: "Exile", highlighted: true },
+      { text: " & Return \u2014 study", highlighted: false },
+    ]);
+  });
+
   it("returns an empty list for empty input", () => {
     expect(snippetToSegments("")).toEqual([]);
     expect(snippetToSegments(null)).toEqual([]);

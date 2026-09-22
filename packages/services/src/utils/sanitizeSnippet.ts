@@ -25,8 +25,15 @@ const ENTITIES: Record<string, string> = {
   "&nbsp;": " ",
 };
 
+// Named entities plus numeric ones (`&#038;`, `&#x26;`), which crawled titles
+// and chunks carry through from the source HTML.
 const decodeEntities = (text: string) =>
-  text.replace(/&(amp|lt|gt|quot|#39|apos|nbsp);/g, (match) => ENTITIES[match]);
+  text
+    .replace(/&(amp|lt|gt|quot|#39|apos|nbsp);/g, (match) => ENTITIES[match])
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) =>
+      String.fromCodePoint(parseInt(hex, 16)),
+    );
 
 /** Splits a `ts_headline` snippet into highlighted / plain text segments. */
 export function snippetToSegments(snippet?: string | null): SnippetSegment[] {
