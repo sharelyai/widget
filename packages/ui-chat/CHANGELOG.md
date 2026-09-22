@@ -1,5 +1,14 @@
 # @sharelyai/widget-ui-chat
 
+## 0.1.1
+
+### Patch Changes
+
+- e99f2f8: Show the highlighted snippet of lexical search hits even when the workspace styling sets `listItem.showDescription: false`; that flag now only hides the description fallback. `snippetToSegments` also decodes numeric HTML entities (`&#038;`, `&#x2014;`) found in crawled content. Other packages are bumped only to keep the linked set on one version.
+- Updated dependencies [e99f2f8]
+  - @sharelyai/widget-services@0.1.1
+  - @sharelyai/widget-ui-shared@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes
